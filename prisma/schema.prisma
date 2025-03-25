@@ -19,16 +19,23 @@ enum Role {
 }
 
 model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
+  id            String         @id @default(uuid())
+  email         String         @unique
   name          String?
-  createdAt     DateTime  @default(now())
-  role          Role      @default(USER)
+  createdAt     DateTime       @default(now())
+  role          Role           @default(USER)
   emailVerified Boolean
   image         String?
   updatedAt     DateTime
   sessions      Session[]
   accounts      Account[]
+  businesses    Business[]
+  clients       Client[]
+  items         Item[]
+  quotes        Quote[]
+  invoices      Invoice[]
+  payments      Payment[]
+  subscriptions Subscription[]
 
   @@map("users")
 }
@@ -76,4 +83,132 @@ model Verification {
   updatedAt  DateTime?
 
   @@map("verification")
+}
+
+model Business {
+  id        String   @id @default(cuid())
+  name      String
+  address   String?
+  logoUrl   String?
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Client {
+  id        String    @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  company   String?
+  address   String?
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String
+  quotes    Quote[]
+  invoices  Invoice[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Item {
+  id           String        @id @default(cuid())
+  name         String
+  description  String?
+  unitPrice    Float
+  user         User          @relation(fields: [userId], references: [id])
+  userId       String
+  quoteItems   QuoteItem[]
+  invoiceItems InvoiceItem[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Quote {
+  id          String      @id @default(cuid())
+  client      Client      @relation(fields: [clientId], references: [id])
+  clientId    String
+  user        User        @relation(fields: [userId], references: [id])
+  userId      String
+  status      QuoteStatus @default(DRAFT)
+  total       Float       @default(0)
+  validUntil  DateTime?
+  quoteItems  QuoteItem[]
+  convertedTo Invoice?    @relation("ConvertedInvoice")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model QuoteItem {
+  id        String @id @default(cuid())
+  quote     Quote  @relation(fields: [quoteId], references: [id])
+  quoteId   String
+  item      Item   @relation(fields: [itemId], references: [id])
+  itemId    String
+  quantity  Int    @default(1)
+  unitPrice Float
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  client        Client        @relation(fields: [clientId], references: [id])
+  clientId      String
+  user          User          @relation(fields: [userId], references: [id])
+  userId        String
+  status        InvoiceStatus @default(PENDING)
+  dueDate       DateTime
+  total         Float
+  invoiceItems  InvoiceItem[]
+  payments      Payment[]
+  createdFrom   Quote?        @relation("ConvertedInvoice", fields: [createdFromId], references: [id])
+  createdFromId String?       @unique
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model InvoiceItem {
+  id        String  @id @default(cuid())
+  invoice   Invoice @relation(fields: [invoiceId], references: [id])
+  invoiceId String
+  item      Item    @relation(fields: [itemId], references: [id])
+  itemId    String
+  quantity  Int     @default(1)
+  unitPrice Float
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  amount    Float
+  paidAt    DateTime @default(now())
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id])
+  invoiceId String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  method    String?
+  createdAt DateTime @default(now())
+}
+
+model Subscription {
+  id               String   @id @default(cuid())
+  user             User     @relation(fields: [userId], references: [id])
+  userId           String   @unique
+  plan             String // e.g., "free", "pro", "enterprise"
+  status           String // e.g., "active", "canceled"
+  currentPeriodEnd DateTime
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELED
 }

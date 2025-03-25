@@ -3,20 +3,13 @@
 import type * as React from "react"
 import {
   ArrowUpCircleIcon,
-  BarChartIcon,
-  CameraIcon,
-  ClipboardListIcon,
-  DatabaseIcon,
-  FileCodeIcon,
   FileIcon,
   FileTextIcon,
-  FolderIcon,
   LayoutDashboardIcon,
-  ListIcon,
+  PackageIcon,
   UsersIcon,
 } from "lucide-react"
 
-import { NavDocuments } from "@/components/SIDEBAR/nav-documents"
 import { NavMain } from "@/components/SIDEBAR/nav-main"
 import { NavUser } from "@/components/SIDEBAR/nav-user"
 import {
@@ -28,108 +21,67 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { paths } from "@/paths"
+import { useAuthStore } from "@/store/auth-store"
 
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+const navMain = [
+  {
+    title: "Dashboard",
+    url: paths.dashboard.home,
+    icon: LayoutDashboardIcon,
+    actions: [{ label: "Voir le tableau de bord", url: paths.dashboard.home }],
   },
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "#",
-      icon: LayoutDashboardIcon,
-    },
-    {
-      title: "Lifecycle",
-      url: "#",
-      icon: ListIcon,
-    },
-    {
-      title: "Analytics",
-      url: "#",
-      icon: BarChartIcon,
-    },
-    {
-      title: "Projects",
-      url: "#",
-      icon: FolderIcon,
-    },
-    {
-      title: "Team",
-      url: "#",
-      icon: UsersIcon,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: CameraIcon,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: FileTextIcon,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: FileCodeIcon,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  documents: [
-    {
-      name: "Data Library",
-      url: "#",
-      icon: DatabaseIcon,
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: ClipboardListIcon,
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: FileIcon,
-    },
-  ],
-}
+  {
+    title: "Devis",
+    url: paths.dashboard.quotes.list,
+    icon: FileTextIcon,
+    actions: [
+      { label: "Créer un devis", url: paths.dashboard.quotes.create },
+      { label: "Voir tous les devis", url: paths.dashboard.quotes.list },
+    ],
+  },
+  {
+    title: "Factures",
+    url: paths.dashboard.invoices.list,
+    icon: FileIcon,
+    actions: [
+      { label: "Créer une facture", url: paths.dashboard.invoices.create },
+      { label: "Voir toutes les factures", url: paths.dashboard.invoices.list },
+    ],
+  },
+  {
+    title: "Clients",
+    url: paths.dashboard.clients.list,
+    icon: UsersIcon,
+    actions: [
+      { label: "Ajouter un client", url: paths.dashboard.clients.create },
+      { label: "Voir tous les clients", url: paths.dashboard.clients.list },
+    ],
+  },
+  {
+    title: "Produits/Services",
+    url: paths.dashboard.items.list,
+    icon: PackageIcon,
+    actions: [
+      { label: "Ajouter un produit", url: paths.dashboard.items.create },
+      { label: "Voir tous les produits", url: paths.dashboard.items.list },
+    ],
+  },
+]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useAuthStore()
+
+  const userData = user ? {
+    name: user.name || "Utilisateur",
+    email: user.email || "user@example.com",
+    avatar: user.image || "/avatars/default.jpg",
+  } : {
+    name: "Utilisateur",
+    email: "user@example.com",
+    avatar: "/avatars/default.jpg",
+  }
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -145,11 +97,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
+        <NavMain items={navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={userData} payments={paths.dashboard.payments} billing={paths.dashboard.billing} />
       </SidebarFooter>
     </Sidebar>
   )

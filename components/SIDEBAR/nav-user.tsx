@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { BellIcon, CreditCardIcon, LogOutIcon, MoreVerticalIcon, UserCircleIcon } from "lucide-react"
+import { BellIcon, CreditCardIcon, LogOutIcon, MoreVerticalIcon, UserCircleIcon, BarcodeIcon } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -32,11 +32,23 @@ const menuItemVariants = {
 
 export function NavUser({
   user,
+  payments,
+  billing,
 }: {
   user: {
     name: string
     email: string
     avatar: string
+  } | null
+  payments: {
+    list: string
+    detail: (paymentId: string) => string
+    refund: (paymentId: string) => string
+  }
+  billing: {
+    index: string
+    upgrade: string
+    invoiceDetail: (invoiceId: string) => string
   }
 }) {
   const { isMobile } = useSidebar()
@@ -48,7 +60,6 @@ export function NavUser({
     await checkAuth()
     router.push("/")
   }
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -68,12 +79,12 @@ export function NavUser({
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <Avatar className="h-8 w-8 rounded-lg grayscale">
-                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarImage src={user?.avatar} alt={user?.name} />
                     <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">{user.name}</span>
-                    <span className="truncate text-xs text-muted-foreground">{user.email}</span>
+                    <span className="truncate font-medium">{user?.name}</span>
+                    <span className="truncate text-xs text-muted-foreground">{user?.email}</span>
                   </div>
                   <MoreVerticalIcon className="ml-auto size-4" />
                 </SidebarMenuButton>
@@ -88,41 +99,47 @@ export function NavUser({
               <DropdownMenuLabel className="p-0 font-normal">
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarImage src={user?.avatar} alt={user?.name} />
                     <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">{user.name}</span>
-                    <span className="truncate text-xs text-muted-foreground">{user.email}</span>
+                    <span className="truncate font-medium">{user?.name}</span>
+                    <span className="truncate text-xs text-muted-foreground">{user?.email}</span>
                   </div>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <motion.div variants={menuItemVariants} initial="hidden" animate="show">
-                  <DropdownMenuItem>
-                    <UserCircleIcon />
-                    Account
+                  <DropdownMenuItem asChild>
+                    <a href="#">
+                      <UserCircleIcon className="mr-2 h-4 w-4" />
+                      <span>Profil</span>
+                    </a>
                   </DropdownMenuItem>
                 </motion.div>
                 <motion.div variants={menuItemVariants} initial="hidden" animate="show" transition={{ delay: 0.1 }}>
-                  <DropdownMenuItem>
-                    <CreditCardIcon />
-                    Billing
+                  <DropdownMenuItem asChild>
+                    <a href={payments.list}>
+                      <CreditCardIcon className="mr-2 h-4 w-4" />
+                      <span>Paiements</span>
+                    </a>
                   </DropdownMenuItem>
                 </motion.div>
                 <motion.div variants={menuItemVariants} initial="hidden" animate="show" transition={{ delay: 0.2 }}>
-                  <DropdownMenuItem>
-                    <BellIcon />
-                    Notifications
+                  <DropdownMenuItem asChild>
+                    <a href={billing.index}>
+                      <BarcodeIcon className="mr-2 h-4 w-4" />
+                      <span>Abonnement</span>
+                    </a>
                   </DropdownMenuItem>
                 </motion.div>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <motion.div variants={menuItemVariants} initial="hidden" animate="show" transition={{ delay: 0.3 }}>
+              <motion.div variants={menuItemVariants} initial="hidden" animate="show" transition={{ delay: 0.4 }}>
                 <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOutIcon />
-                  Log out
+                  <LogOutIcon className="mr-2 h-4 w-4" />
+                  <span>Déconnexion</span>
                 </DropdownMenuItem>
               </motion.div>
             </DropdownMenuContent>
