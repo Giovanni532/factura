@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:15
+    container_name: factura_db
+    environment:
+      POSTGRES_USER: factura_user
+      POSTGRES_PASSWORD: factura_password
+      POSTGRES_DB: factura_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data: 
