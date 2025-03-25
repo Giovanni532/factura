@@ -16,6 +16,7 @@ import {
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar"
 import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/store/auth-store"
+import Link from "next/link"
 
 const menuItemVariants = {
   hidden: { opacity: 0, y: 10 },
@@ -112,26 +113,26 @@ export function NavUser({
               <DropdownMenuGroup>
                 <motion.div variants={menuItemVariants} initial="hidden" animate="show">
                   <DropdownMenuItem asChild>
-                    <a href="#">
+                    <Link href="#">
                       <UserCircleIcon className="mr-2 h-4 w-4" />
                       <span>Profil</span>
-                    </a>
+                    </Link>
                   </DropdownMenuItem>
                 </motion.div>
                 <motion.div variants={menuItemVariants} initial="hidden" animate="show" transition={{ delay: 0.1 }}>
                   <DropdownMenuItem asChild>
-                    <a href={payments.list}>
+                    <Link href={payments.list}>
                       <CreditCardIcon className="mr-2 h-4 w-4" />
                       <span>Paiements</span>
-                    </a>
+                    </Link>
                   </DropdownMenuItem>
                 </motion.div>
                 <motion.div variants={menuItemVariants} initial="hidden" animate="show" transition={{ delay: 0.2 }}>
                   <DropdownMenuItem asChild>
-                    <a href={billing.index}>
+                    <Link href={billing.index}>
                       <BarcodeIcon className="mr-2 h-4 w-4" />
                       <span>Abonnement</span>
-                    </a>
+                    </Link>
                   </DropdownMenuItem>
                 </motion.div>
               </DropdownMenuGroup>

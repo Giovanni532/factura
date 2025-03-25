@@ -13,6 +13,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import Link from "next/link"
 
 const container = {
   hidden: { opacity: 0 },
@@ -59,10 +60,10 @@ export function NavMain({
                 <SidebarMenuItem>
                   <motion.div whileHover={{ opacity: 0.9 }} transition={{ duration: 0.2 }}>
                     <SidebarMenuButton tooltip={navItem.title} asChild>
-                      <a href={navItem.url}>
+                      <Link href={navItem.url}>
                         {navItem.icon && <navItem.icon />}
                         <span>{navItem.title}</span>
-                      </a>
+                      </Link>
                     </SidebarMenuButton>
                   </motion.div>
 
@@ -87,7 +88,7 @@ export function NavMain({
                             transition={{ delay: 0.1 * i }}
                           >
                             <DropdownMenuItem asChild>
-                              <a href={action.url}>{action.label}</a>
+                              <Link href={action.url}>{action.label}</Link>
                             </DropdownMenuItem>
                           </motion.div>
                         ))}
