@@ -55,9 +55,9 @@ export function SectionCards() {
       <motion.div variants={item}>
         <Card className="@container/card overflow-hidden">
           <CardHeader className="relative">
-            <CardDescription>Total Revenue</CardDescription>
+            <CardDescription>Revenus générés</CardDescription>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.5 }}>
-              <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">$1,250.00</CardTitle>
+              <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">12 500 €</CardTitle>
             </motion.div>
             <motion.div className="absolute right-4 top-4" variants={badgeVariants}>
               <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
@@ -67,126 +67,83 @@ export function SectionCards() {
             </motion.div>
           </CardHeader>
           <CardFooter className="flex-col items-start gap-1 text-sm">
-            <motion.div
-              className="line-clamp-1 flex gap-2 font-medium"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.7, duration: 0.3 }}
-            >
-              Trending up this month <TrendingUpIcon className="size-4" />
+            <motion.div className="line-clamp-1 flex gap-2 font-medium" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7, duration: 0.3 }}>
+              Hausse ce mois-ci <TrendingUpIcon className="size-4" />
             </motion.div>
-            <motion.div
-              className="text-muted-foreground"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8, duration: 0.3 }}
-            >
-              Visitors for the last 6 months
+            <motion.div className="text-muted-foreground" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 0.3 }}>
+              Basé sur les factures payées
             </motion.div>
           </CardFooter>
         </Card>
       </motion.div>
-
       <motion.div variants={item}>
         <Card className="@container/card overflow-hidden">
           <CardHeader className="relative">
-            <CardDescription>New Customers</CardDescription>
+            <CardDescription>Nouveaux clients</CardDescription>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.5 }}>
-              <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">1,234</CardTitle>
+              <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">32</CardTitle>
             </motion.div>
             <motion.div className="absolute right-4 top-4" variants={badgeVariants}>
               <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
                 <TrendingDownIcon className="size-3" />
-                -20%
+                -8%
               </Badge>
             </motion.div>
           </CardHeader>
           <CardFooter className="flex-col items-start gap-1 text-sm">
-            <motion.div
-              className="line-clamp-1 flex gap-2 font-medium"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.7, duration: 0.3 }}
-            >
-              Down 20% this period <TrendingDownIcon className="size-4" />
+            <motion.div className="line-clamp-1 flex gap-2 font-medium" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7, duration: 0.3 }}>
+              En baisse ce mois-ci <TrendingDownIcon className="size-4" />
             </motion.div>
-            <motion.div
-              className="text-muted-foreground"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8, duration: 0.3 }}
-            >
-              Acquisition needs attention
+            <motion.div className="text-muted-foreground" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 0.3 }}>
+              Moins de demandes de devis reçues
             </motion.div>
           </CardFooter>
         </Card>
       </motion.div>
-
       <motion.div variants={item}>
         <Card className="@container/card overflow-hidden">
           <CardHeader className="relative">
-            <CardDescription>Active Accounts</CardDescription>
+            <CardDescription>Devis envoyés</CardDescription>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.5 }}>
-              <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">45,678</CardTitle>
+              <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">84</CardTitle>
             </motion.div>
             <motion.div className="absolute right-4 top-4" variants={badgeVariants}>
               <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
                 <TrendingUpIcon className="size-3" />
-                +12.5%
+                +18%
               </Badge>
             </motion.div>
           </CardHeader>
           <CardFooter className="flex-col items-start gap-1 text-sm">
-            <motion.div
-              className="line-clamp-1 flex gap-2 font-medium"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.7, duration: 0.3 }}
-            >
-              Strong user retention <TrendingUpIcon className="size-4" />
+            <motion.div className="line-clamp-1 flex gap-2 font-medium" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7, duration: 0.3 }}>
+              Activité en hausse <TrendingUpIcon className="size-4" />
             </motion.div>
-            <motion.div
-              className="text-muted-foreground"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8, duration: 0.3 }}
-            >
-              Engagement exceed targets
+            <motion.div className="text-muted-foreground" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 0.3 }}>
+              Plus de demandes enregistrées
             </motion.div>
           </CardFooter>
         </Card>
       </motion.div>
-
       <motion.div variants={item}>
         <Card className="@container/card overflow-hidden">
           <CardHeader className="relative">
-            <CardDescription>Growth Rate</CardDescription>
+            <CardDescription>Factures impayées</CardDescription>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.5 }}>
-              <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">4.5%</CardTitle>
+              <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">3 750 €</CardTitle>
             </motion.div>
             <motion.div className="absolute right-4 top-4" variants={badgeVariants}>
               <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
                 <TrendingUpIcon className="size-3" />
-                +4.5%
+                +5%
               </Badge>
             </motion.div>
           </CardHeader>
           <CardFooter className="flex-col items-start gap-1 text-sm">
-            <motion.div
-              className="line-clamp-1 flex gap-2 font-medium"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.7, duration: 0.3 }}
-            >
-              Steady performance <TrendingUpIcon className="size-4" />
+            <motion.div className="line-clamp-1 flex gap-2 font-medium" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7, duration: 0.3 }}>
+              Suivi recommandé <TrendingUpIcon className="size-4" />
             </motion.div>
-            <motion.div
-              className="text-muted-foreground"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8, duration: 0.3 }}
-            >
-              Meets growth projections
+            <motion.div className="text-muted-foreground" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 0.3 }}>
+              Paiements en attente à relancer
             </motion.div>
           </CardFooter>
         </Card>
@@ -194,4 +151,3 @@ export function SectionCards() {
     </motion.div>
   )
 }
-
