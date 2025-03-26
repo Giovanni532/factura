@@ -8,9 +8,5 @@ function sleep(ms: number) {
 export default async function QuotesPage() {
     await sleep(1000)
 
-    return (
-        <div>
-            <DataTableQuote />
-        </div>
-    )
+    return <DataTableQuote />
 }

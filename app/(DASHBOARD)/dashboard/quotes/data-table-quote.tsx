@@ -4,6 +4,7 @@ import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
+
 import {
     ChevronLeft,
     ChevronRight,
@@ -39,6 +40,8 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useRouter } from "next/navigation"
+import { paths } from "@/paths"
 
 // Types
 type DevisStatus = "draft" | "sent" | "accepted" | "rejected" | "converted"
@@ -148,15 +151,14 @@ const StatusBadge = ({ status }: { status: DevisStatus }) => {
     return <Badge variant={config.variant}>{config.label}</Badge>
 }
 
-// Composant principal de la page Devis
 export default function DataTableQuote() {
     const [searchQuery, setSearchQuery] = useState("")
     const [statusFilter, setStatusFilter] = useState<DevisStatus | "all">("all")
     const [currentPage, setCurrentPage] = useState(1)
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [devisToDelete, setDevisToDelete] = useState<string | null>(null)
-    const [showEmptyState, setShowEmptyState] = useState(false) // Pour démontrer l'état vide
     const [itemsPerPage, setItemsPerPage] = useState(5)
+    const router = useRouter()
 
     const handlePageChange = (newPage: number) => {
         // Animation de sortie
@@ -297,7 +299,7 @@ export default function DataTableQuote() {
                     </CardHeader>
                     <CardContent>
                         <AnimatePresence mode="wait">
-                            {showEmptyState || filteredDevis.length === 0 ? (
+                            {filteredDevis.length === 0 ? (
                                 <EmptyState />
                             ) : (
                                 <motion.div
@@ -351,11 +353,11 @@ export default function DataTableQuote() {
                                                                 </Button>
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="end">
-                                                                <DropdownMenuItem onClick={() => console.log(`Voir devis ${devis.id}`)}>
+                                                                <DropdownMenuItem onClick={() => router.push(paths.dashboard.quotes.detail(devis.id))}>
                                                                     <Eye className="mr-2 h-4 w-4" />
                                                                     Voir
                                                                 </DropdownMenuItem>
-                                                                <DropdownMenuItem onClick={() => console.log(`Modifier devis ${devis.id}`)}>
+                                                                <DropdownMenuItem onClick={() => router.push(paths.dashboard.quotes.edit(devis.id))}>
                                                                     <Edit className="mr-2 h-4 w-4" />
                                                                     Modifier
                                                                 </DropdownMenuItem>
@@ -387,7 +389,7 @@ export default function DataTableQuote() {
                         </AnimatePresence>
 
                         {/* Pagination */}
-                        {!showEmptyState && filteredDevis.length > 0 && (
+                        {filteredDevis.length > 0 && (
                             <motion.div
                                 className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4"
                                 initial={{ opacity: 0 }}
@@ -473,7 +475,6 @@ export default function DataTableQuote() {
                 </Card>
             </div>
 
-            {/* Dialog de confirmation de suppression */}
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
@@ -492,13 +493,6 @@ export default function DataTableQuote() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-
-            {/* Bouton pour démontrer l'état vide (uniquement pour la démo) */}
-            <div className="fixed bottom-4 right-4">
-                <Button variant="outline" size="sm" onClick={() => setShowEmptyState(!showEmptyState)} className="text-xs">
-                    {showEmptyState ? "Afficher les devis" : "Afficher l'état vide"}
-                </Button>
-            </div>
         </div>
     )
 }
