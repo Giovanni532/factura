@@ -1,7 +1,14 @@
 import React from 'react'
+import QuoteDetail from './quote-detail'
 
-export default function QuotesPageDetail() {
+function sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+export default async function QuotesPageDetail({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params
+    await sleep(1000)
     return (
-        <div>QuotesPageDetail</div>
+        <QuoteDetail id={id} />
     )
 }
