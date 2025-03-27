@@ -8,7 +8,6 @@ export const paths = {
         home: "/dashboard",
         profile: (userId: string) => `/dashboard/${userId}/profile`,
 
-        // Quotes (Devis)
         quotes: {
             list: "/dashboard/quotes",
             create: "/dashboard/quotes/create",
@@ -16,7 +15,6 @@ export const paths = {
             edit: (quoteId: string) => `/dashboard/quotes/${quoteId}/edit`,
         },
 
-        // Invoices (Factures)
         invoices: {
             list: "/dashboard/invoices",
             create: "/dashboard/invoices/create",
@@ -24,7 +22,6 @@ export const paths = {
             edit: (invoiceId: string) => `/dashboard/invoices/${invoiceId}/edit`,
         },
 
-        // Clients
         clients: {
             list: "/dashboard/clients",
             create: "/dashboard/clients/create",
@@ -32,25 +29,18 @@ export const paths = {
             edit: (clientId: string) => `/dashboard/clients/${clientId}/edit`,
         },
 
-        // Items (Produits/Services)
         items: {
             list: "/dashboard/items",
             create: "/dashboard/items/create",
             edit: (itemId: string) => `/dashboard/items/${itemId}/edit`,
         },
 
-        // Payments
-        payments: {
-            list: "/dashboard/payments",
-            detail: (paymentId: string) => `/dashboard/payments/${paymentId}`,
-            refund: (paymentId: string) => `/dashboard/payments/${paymentId}/refund`,
-        },
-
-        // Abonnement / Billing
-        billing: {
-            index: "/dashboard/billing",
-            upgrade: "/dashboard/billing/upgrade",
-            invoiceDetail: (invoiceId: string) => `/dashboard/billing/invoices/${invoiceId}`,
+        subscription: {
+            index: (userId: string) => `/dashboard/${userId}/subscription`,
+            invoices: {
+                list: (userId: string) => `/dashboard/${userId}/subscription/invoices`,
+                detail: (userId: string, invoiceId: string) => `/dashboard/${userId}/subscription/invoices/${invoiceId}`,
+            },
         },
     },
 }

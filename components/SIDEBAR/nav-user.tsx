@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { BellIcon, CreditCardIcon, LogOutIcon, MoreVerticalIcon, UserCircleIcon, BarcodeIcon } from "lucide-react"
+import { CreditCardIcon, LogOutIcon, MoreVerticalIcon, UserCircleIcon, BarcodeIcon } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -17,6 +17,7 @@ import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/c
 import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/store/auth-store"
 import Link from "next/link"
+import { paths } from "@/paths"
 
 const menuItemVariants = {
   hidden: { opacity: 0, y: 10 },
@@ -33,23 +34,20 @@ const menuItemVariants = {
 
 export function NavUser({
   user,
-  payments,
-  billing,
+  subscription,
 }: {
   user: {
+    id: string
     name: string
     email: string
     avatar: string
   } | null
-  payments: {
-    list: string
-    detail: (paymentId: string) => string
-    refund: (paymentId: string) => string
-  }
-  billing: {
-    index: string
-    upgrade: string
-    invoiceDetail: (invoiceId: string) => string
+  subscription: {
+    index: (userId: string) => string
+    invoices: {
+      list: (userId: string) => string
+      detail: (userId: string, invoiceId: string) => string
+    }
   }
 }) {
   const { isMobile } = useSidebar()
@@ -113,23 +111,15 @@ export function NavUser({
               <DropdownMenuGroup>
                 <motion.div variants={menuItemVariants} initial="hidden" animate="show">
                   <DropdownMenuItem asChild>
-                    <Link href="#">
+                    <Link href={paths.dashboard.profile(user?.id as string)}>
                       <UserCircleIcon className="mr-2 h-4 w-4" />
                       <span>Profil</span>
                     </Link>
                   </DropdownMenuItem>
                 </motion.div>
-                <motion.div variants={menuItemVariants} initial="hidden" animate="show" transition={{ delay: 0.1 }}>
-                  <DropdownMenuItem asChild>
-                    <Link href={payments.list}>
-                      <CreditCardIcon className="mr-2 h-4 w-4" />
-                      <span>Paiements</span>
-                    </Link>
-                  </DropdownMenuItem>
-                </motion.div>
                 <motion.div variants={menuItemVariants} initial="hidden" animate="show" transition={{ delay: 0.2 }}>
                   <DropdownMenuItem asChild>
-                    <Link href={billing.index}>
+                    <Link href={subscription.index(user?.id as string)}>
                       <BarcodeIcon className="mr-2 h-4 w-4" />
                       <span>Abonnement</span>
                     </Link>
