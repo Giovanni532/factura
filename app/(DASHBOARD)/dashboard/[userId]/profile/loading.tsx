@@ -178,29 +178,6 @@ export default function ProfileLoading() {
                     </CardContent>
                   </Card>
                 </motion.div>
-
-                <motion.div variants={itemAnimation}>
-                  <Card>
-                    <CardHeader>
-                      <motion.div variants={pulseAnimation}>
-                        <Skeleton className="h-7 w-32 mb-2" />
-                      </motion.div>
-                      <motion.div variants={pulseAnimation}>
-                        <Skeleton className="h-5 w-48" />
-                      </motion.div>
-                    </CardHeader>
-                    <CardContent>
-                      <motion.div className="flex items-center justify-between" variants={itemAnimation}>
-                        <motion.div variants={pulseAnimation}>
-                          <Skeleton className="h-5 w-24" />
-                        </motion.div>
-                        <motion.div variants={pulseAnimation}>
-                          <Skeleton className="h-6 w-32 rounded-full" />
-                        </motion.div>
-                      </motion.div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
               </motion.div>
             </motion.div>
           </TabsContent>
