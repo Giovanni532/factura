@@ -8,53 +8,23 @@ export const auth = betterAuth({
     }),
     emailAndPassword: {
         enabled: true,
-        requireEmailVerification: true,
         sendResetPassword: async ({ user, url, token }, request) => {
-            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-            try {
-                const response = await fetch(`${baseUrl}/api/emails/reset-password`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        userId: user.id,
-                        url,
-                    }),
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error('Error sending reset password email:', errorData);
-                }
-            } catch (error) {
-                console.error('Error sending reset password email:', error);
-            }
+            // We will use the Resend API to send the email
+            // The implementation is in the API route
+            await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/resend/password-reset`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: user.email,
+                    name: user.name,
+                    url: url,
+                    token: token,
+                }),
+            });
         },
-        resetPasswordTokenExpiresIn: 3600, // 1 heure
+        resetPasswordTokenExpiresIn: 3600, // 1 hour
     },
-    emailVerification: {
-        sendVerificationEmail: async ({ user, url, token }, request) => {
-            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-            try {
-                const response = await fetch(`${baseUrl}/api/emails/verification`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        userId: user.id,
-                        url,
-                    }),
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error('Error sending verification email:', errorData);
-                }
-            } catch (error) {
-                console.error('Error sending verification email:', error);
-            }
-        },
-    },
+    
 });

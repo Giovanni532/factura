@@ -3,7 +3,7 @@ export const paths = {
     auth: {
         signIn: "/auth/sign-in",
         signUp: "/auth/sign-up",
-        forgotPassword: "/auth/forgot-password",
+        forgetPassword: "/auth/forget-password",
         resetPassword: "/auth/reset-password",
     },
     dashboard: {
