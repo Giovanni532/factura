@@ -198,7 +198,7 @@ export default function ResetPasswordForm() {
 
   if (!isValidToken) {
     return (
-      <div className="flex items-center justify-center min-h-[500px] p-4">
+      <div className="flex items-center justify-center min-h-[500px] p-4 w-96">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6 pb-6 flex flex-col items-center justify-center space-y-4">
             <motion.div

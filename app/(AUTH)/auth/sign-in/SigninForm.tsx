@@ -50,12 +50,12 @@ export default function SignInForm() {
                     router.push(paths.dashboard.home);
                 },
                 onError: (ctx) => {
-                    setError(ctx.error.message);
+                    setError("Une erreur est survenue lors de la connexion");
                 },
             });
 
             if (error) {
-                setError(error.message || "Une erreur est survenue lors de la connexion");
+                setError("Une erreur est survenue lors de la connexion");
             }
         } catch (err) {
             setError("Une erreur est survenue lors de la connexion");

@@ -132,7 +132,7 @@ export default function ForgetPasswordForm() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[500px] p-4">
+    <div className="flex items-center justify-center min-h-[500px] p-4 w-96">
       <Card className="w-full max-w-md overflow-hidden">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">Mot de passe oublié</CardTitle>
@@ -141,7 +141,7 @@ export default function ForgetPasswordForm() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} >
             <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-4">
               <motion.div variants={itemVariants} className="space-y-2">
                 <Label htmlFor="email">Email</Label>

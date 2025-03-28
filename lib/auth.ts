@@ -9,8 +9,6 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true,
         sendResetPassword: async ({ user, url, token }, request) => {
-            // We will use the Resend API to send the email
-            // The implementation is in the API route
             await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/resend/password-reset`, {
                 method: 'POST',
                 headers: {

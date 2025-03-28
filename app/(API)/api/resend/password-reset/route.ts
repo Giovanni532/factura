@@ -9,24 +9,24 @@ export async function POST(request: Request) {
     const { email, name, url } = body;
 
     if (!email || !url) {
-      return Response.json({ error: 'Missing required fields' }, { status: 400 });
+      return Response.json({ error: 'Email ou URL manquant' }, { status: 400 });
     }
 
     const { data, error } = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'Factura <onboarding@mail.giovannisalcuni.dev>',
       to: [email],
       subject: 'Réinitialisation de votre mot de passe',
-      react: EmailForgetPassword({ userName: name || email.split('@')[0], resetLink: url }),
+      react: await EmailForgetPassword({ userName: name || email.split('@')[0], resetLink: url }),
     });
 
     if (error) {
-      console.error('Error sending email:', error);
+      console.error('Erreur lors de l\'envoi de l\'email:', error);
       return Response.json({ error }, { status: 500 });
     }
 
     return Response.json({ success: true, data });
   } catch (error) {
-    console.error('Error in password reset API route:', error);
-    return Response.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Erreur dans la route API de réinitialisation de mot de passe:', error);
+    return Response.json({ error: 'Erreur interne du serveur' }, { status: 500 });
   }
 } 
