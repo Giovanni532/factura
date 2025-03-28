@@ -5,21 +5,10 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { LogOut, Save, Check } from "lucide-react"
+import { Save, Check } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
 
 import { containerVariants, fadeInVariants } from "@/app/(DASHBOARD)/dashboard/[userId]/profile/animations"
@@ -143,12 +132,6 @@ export default function ProfilePageClient() {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  // Gérer la déconnexion
-  const handleLogout = () => {
-    // Dans une vraie application, vous déconnecteriez l'utilisateur ici
-    router.push("/login")
   }
 
   return (
