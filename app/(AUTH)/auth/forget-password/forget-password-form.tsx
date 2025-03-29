@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowRightIcon, CheckCircleIcon, ArrowLeftIcon, MailIcon } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
+import { paths } from "@/paths"
 
 export default function ForgetPasswordForm() {
   const [email, setEmail] = useState("")
@@ -26,7 +27,6 @@ export default function ForgetPasswordForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Validation de base pour l'email
     if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
       setError("Veuillez entrer une adresse email valide")
       return
@@ -36,18 +36,22 @@ export default function ForgetPasswordForm() {
     setError("")
 
     try {
-      // Utiliser l'API Better Auth pour demander la réinitialisation du mot de passe
-      const { error } = await authClient.forgetPassword({
+      const { error: errorAuthClient } = await authClient.forgetPassword({
         email: email,
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+        redirectTo: paths.auth.resetPassword,
       })
-
-      if (error) {
-        setError(error.message || "Une erreur est survenue lors de l'envoi de l'email")
+      
+      // Si l'erreur est liée à un utilisateur non trouvé, on ne l'affiche pas à l'utilisateur
+      // pour des raisons de sécurité
+      if (errorAuthClient && errorAuthClient.message && 
+          !errorAuthClient.message.toLowerCase().includes("not found")) {
+        setError(errorAuthClient.message || "Une erreur est survenue lors de l'envoi de l'email")
         setIsLoading(false)
         return
       }
 
+      // Même si l'utilisateur n'existe pas, on montre un message de succès
+      // pour éviter l'énumération des utilisateurs
       setIsLoading(false)
       setIsSubmitted(true)
     } catch (err) {
@@ -109,8 +113,7 @@ export default function ForgetPasswordForm() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
             >
-              Si un compte existe avec l'adresse {email}, vous recevrez un email avec les instructions pour
-              réinitialiser votre mot de passe.
+              Si un compte existe avec l'adresse {email}, vous recevrez un email avec les instructions pour réinitialiser votre mot de passe.
             </motion.p>
             <motion.div
               initial={{ opacity: 0 }}
