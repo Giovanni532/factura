@@ -42,105 +42,32 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
 import { paths } from "@/paths"
+import { Quote } from "@/actions/quote"
 
 // Types
-type DevisStatus = "draft" | "sent" | "accepted" | "rejected" | "converted"
-type Devis = {
-    id: string
-    number: string
-    client: {
-        name: string
-        company?: string
-    }
-    createdAt: Date
-    dueDate: Date
-    amount: number
-    status: DevisStatus
-}
-
-// Données de démonstration
-const devisData: Devis[] = [
-    {
-        id: "1",
-        number: "DEV-2023-001",
-        client: {
-            name: "Jean Dupont",
-            company: "Dupont Consulting",
-        },
-        createdAt: new Date(2023, 5, 15),
-        dueDate: new Date(2023, 6, 15),
-        amount: 1250.0,
-        status: "sent",
-    },
-    {
-        id: "2",
-        number: "DEV-2023-002",
-        client: {
-            name: "Marie Martin",
-            company: "Martin Design",
-        },
-        createdAt: new Date(2023, 5, 20),
-        dueDate: new Date(2023, 6, 20),
-        amount: 3450.75,
-        status: "accepted",
-    },
-    {
-        id: "3",
-        number: "DEV-2023-003",
-        client: {
-            name: "Pierre Lefebvre",
-        },
-        createdAt: new Date(2023, 6, 1),
-        dueDate: new Date(2023, 7, 1),
-        amount: 750.5,
-        status: "draft",
-    },
-    {
-        id: "4",
-        number: "DEV-2023-004",
-        client: {
-            name: "Sophie Bernard",
-            company: "Bernard & Associés",
-        },
-        createdAt: new Date(2023, 6, 10),
-        dueDate: new Date(2023, 7, 10),
-        amount: 5200.0,
-        status: "converted",
-    },
-    {
-        id: "5",
-        number: "DEV-2023-005",
-        client: {
-            name: "Thomas Petit",
-            company: "Petit Entreprise",
-        },
-        createdAt: new Date(2023, 6, 15),
-        dueDate: new Date(2023, 7, 15),
-        amount: 1800.25,
-        status: "rejected",
-    },
-]
+type DevisStatus = "DRAFT" | "SENT" | "ACCEPTED" | "REJECTED" | "CONVERTED"
+type Devis = Quote
 
 // Composant pour afficher le statut avec un badge
 const StatusBadge = ({ status }: { status: DevisStatus }) => {
     const statusConfig = {
-        draft: {
+        DRAFT: {
             label: "Brouillon",
             variant: "secondary" as const,
         },
-        sent: {
+        SENT: {
             label: "Envoyé",
             variant: "default" as const,
         },
-        accepted: {
+        ACCEPTED: {
             label: "Accepté",
             variant: "default" as const,
         },
-        rejected: {
+        REJECTED: {
             label: "Refusé",
             variant: "destructive" as const,
         },
-        converted: {
+        CONVERTED: {
             label: "Converti en facture",
             variant: "outline" as const,
         },
@@ -151,7 +78,11 @@ const StatusBadge = ({ status }: { status: DevisStatus }) => {
     return <Badge variant={config.variant}>{config.label}</Badge>
 }
 
-export default function DataTableQuote() {
+interface DataTableQuoteProps {
+    quotes: Devis[]
+}
+
+export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
     const [searchQuery, setSearchQuery] = useState("")
     const [statusFilter, setStatusFilter] = useState<DevisStatus | "all">("all")
     const [currentPage, setCurrentPage] = useState(1)
@@ -166,7 +97,7 @@ export default function DataTableQuote() {
     }
 
     // Filtrer les devis en fonction de la recherche et du statut
-    const filteredDevis = devisData.filter((devis) => {
+    const filteredDevis = quotes.filter((devis) => {
         const matchesSearch =
             devis.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
             devis.client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -264,11 +195,11 @@ export default function DataTableQuote() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">Tous les devis</SelectItem>
-                                <SelectItem value="draft">Brouillon</SelectItem>
-                                <SelectItem value="sent">Envoyé</SelectItem>
-                                <SelectItem value="accepted">Accepté</SelectItem>
-                                <SelectItem value="rejected">Refusé</SelectItem>
-                                <SelectItem value="converted">Converti en facture</SelectItem>
+                                <SelectItem value="DRAFT">Brouillon</SelectItem>
+                                <SelectItem value="SENT">Envoyé</SelectItem>
+                                <SelectItem value="ACCEPTED">Accepté</SelectItem>
+                                <SelectItem value="REJECTED">Refusé</SelectItem>
+                                <SelectItem value="CONVERTED">Converti en facture</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -281,11 +212,11 @@ export default function DataTableQuote() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">Tous les devis</SelectItem>
-                                <SelectItem value="draft">Brouillon</SelectItem>
-                                <SelectItem value="sent">Envoyé</SelectItem>
-                                <SelectItem value="accepted">Accepté</SelectItem>
-                                <SelectItem value="rejected">Refusé</SelectItem>
-                                <SelectItem value="converted">Converti en facture</SelectItem>
+                                <SelectItem value="DRAFT">Brouillon</SelectItem>
+                                <SelectItem value="SENT">Envoyé</SelectItem>
+                                <SelectItem value="ACCEPTED">Accepté</SelectItem>
+                                <SelectItem value="REJECTED">Refusé</SelectItem>
+                                <SelectItem value="CONVERTED">Converti en facture</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

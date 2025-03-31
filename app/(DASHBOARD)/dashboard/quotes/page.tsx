@@ -1,12 +1,11 @@
 import React from 'react'
 import DataTableQuote from './data-table-quote'
-
-function sleep(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms))
-}
+import { getUserQuotes } from '@/actions/quote'
+import { Quote } from '@/actions/quote'
 
 export default async function QuotesPage() {
-    await sleep(1000)
+    const response = await getUserQuotes({});
+    const quotes: Quote[] = response?.data?.quotes || [];
 
-    return <DataTableQuote />
+    return <DataTableQuote quotes={quotes} />;
 }

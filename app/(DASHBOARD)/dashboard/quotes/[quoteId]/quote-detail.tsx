@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { paths } from "@/paths"
 
 // Types
 type DevisStatus = "draft" | "sent" | "accepted" | "rejected" | "converted"
@@ -230,7 +231,7 @@ export default function DevisDetailPage({ id }: { id: string }) {
         <div className="container mx-auto px-4 py-6 max-w-7xl">
             <div className="flex flex-col space-y-8">
                 {/* Bouton retour */}
-                <Button variant="ghost" size="sm" className="w-fit" onClick={() => router.back()}>
+                <Button variant="ghost" size="sm" className="w-fit" onClick={() => router.push(paths.dashboard.quotes.list)}>
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Retour aux devis
                 </Button>
