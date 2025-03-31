@@ -28,136 +28,31 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { paths } from "@/paths"
+import { QuoteDetail, QuoteStatus } from "@/actions/quote"
 
 // Types
-type DevisStatus = "draft" | "sent" | "accepted" | "rejected" | "converted"
-type DevisItem = {
-    id: string
-    name: string
-    description: string
-    quantity: number
-    unitPrice: number
-    taxRate: number
-}
-
-type Devis = {
-    id: string
-    number: string
-    client: {
-        name: string
-        email: string
-        address: {
-            street: string
-            city: string
-            postalCode: string
-            country: string
-        }
-    }
-    company: {
-        name: string
-        email: string
-        address: {
-            street: string
-            city: string
-            postalCode: string
-            country: string
-        }
-        logo?: string
-        taxId: string
-    }
-    items: DevisItem[]
-    createdAt: Date
-    dueDate: Date
-    status: DevisStatus
-    discount?: {
-        type: "percentage" | "fixed"
-        value: number
-    }
-    notes?: string
-}
-
-// Données de démonstration
-export const devisData: Devis = {
-    id: "1",
-    number: "Q-1021",
-    client: {
-        name: "Martin Dupont",
-        email: "martin.dupont@example.com",
-        address: {
-            street: "123 Rue de la Paix",
-            city: "Paris",
-            postalCode: "75001",
-            country: "France",
-        },
-    },
-    company: {
-        name: "Ma Société SAS",
-        email: "contact@masociete.com",
-        address: {
-            street: "45 Avenue des Champs-Élysées",
-            city: "Paris",
-            postalCode: "75008",
-            country: "France",
-        },
-        taxId: "FR 76 123 456 789",
-    },
-    items: [
-        {
-            id: "item-1",
-            name: "Développement site web",
-            description: "Création d'un site web responsive avec CMS",
-            quantity: 1,
-            unitPrice: 2500,
-            taxRate: 20,
-        },
-        {
-            id: "item-2",
-            name: "Maintenance mensuelle",
-            description: "Maintenance technique et mises à jour de sécurité",
-            quantity: 12,
-            unitPrice: 150,
-            taxRate: 20,
-        },
-        {
-            id: "item-3",
-            name: "Hébergement premium",
-            description: "Hébergement haute disponibilité avec sauvegarde quotidienne",
-            quantity: 1,
-            unitPrice: 350,
-            taxRate: 20,
-        },
-    ],
-    createdAt: new Date(2023, 5, 15),
-    dueDate: new Date(2023, 6, 15),
-    status: "sent",
-    discount: {
-        type: "percentage",
-        value: 10,
-    },
-    notes:
-        "Ce devis est valable 30 jours à compter de sa date d'émission. Le paiement est dû dans les 15 jours suivant l'acceptation du devis.",
-}
+type DevisStatus = QuoteStatus
 
 // Composant pour afficher le statut avec un badge
 const StatusBadge = ({ status }: { status: DevisStatus }) => {
     const statusConfig = {
-        draft: {
+        DRAFT: {
             label: "Brouillon",
             variant: "secondary" as const,
         },
-        sent: {
+        SENT: {
             label: "Envoyé",
             variant: "default" as const,
         },
-        accepted: {
+        ACCEPTED: {
             label: "Accepté",
             variant: "default" as const,
         },
-        rejected: {
+        REJECTED: {
             label: "Refusé",
             variant: "destructive" as const,
         },
-        converted: {
+        CONVERTED: {
             label: "Converti en facture",
             variant: "outline" as const,
         },
@@ -169,25 +64,24 @@ const StatusBadge = ({ status }: { status: DevisStatus }) => {
 }
 
 // Composant principal de la page de détail du devis
-export default function DevisDetailPage({ id }: { id: string }) {
+export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
     const router = useRouter()
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [convertDialogOpen, setConvertDialogOpen] = useState(false)
-    const devis = devisData // Dans une vraie application, vous récupéreriez le devis par son ID
 
     // Calculs financiers
     const calculateSubtotal = () => {
-        return devis.items.reduce((total, item) => total + item.quantity * item.unitPrice, 0)
+        return quote.items.reduce((total, item) => total + item.quantity * item.unitPrice, 0)
     }
 
     const calculateTaxes = () => {
-        return devis.items.reduce((total, item) => total + (item.quantity * item.unitPrice * item.taxRate) / 100, 0)
+        return quote.items.reduce((total, item) => total + (item.quantity * item.unitPrice * item.taxRate) / 100, 0)
     }
 
     const calculateDiscount = () => {
-        if (!devis.discount) return 0
+        if (!quote.discount) return 0
         const subtotal = calculateSubtotal()
-        return devis.discount.type === "percentage" ? (subtotal * devis.discount.value) / 100 : devis.discount.value
+        return quote.discount.type === "percentage" ? (subtotal * quote.discount.value) / 100 : quote.discount.value
     }
 
     const calculateTotal = () => {
@@ -209,9 +103,9 @@ export default function DevisDetailPage({ id }: { id: string }) {
 
     const confirmDeleteDevis = () => {
         // Logique de suppression ici
-        console.log(`Devis ${devis.id} supprimé`)
+        console.log(`Devis ${quote.id} supprimé`)
         setDeleteDialogOpen(false)
-        router.push("/devis") // Redirection vers la liste des devis
+        router.push(paths.dashboard.quotes.list) // Redirection vers la liste des devis
     }
 
     // Gérer la conversion en facture
@@ -221,7 +115,7 @@ export default function DevisDetailPage({ id }: { id: string }) {
 
     const confirmConvertToInvoice = () => {
         // Logique de conversion ici
-        console.log(`Devis ${devis.id} converti en facture`)
+        console.log(`Devis ${quote.id} converti en facture`)
         setConvertDialogOpen(false)
         // Redirection vers la facture nouvellement créée
         // router.push(`/factures/${newInvoiceId}`)
@@ -246,12 +140,12 @@ export default function DevisDetailPage({ id }: { id: string }) {
                                     animate={{ opacity: 1, y: 0 }}
                                     className="text-3xl font-bold tracking-tight"
                                 >
-                                    Devis #{devis.number}
+                                    Devis #{quote.number}
                                 </motion.h1>
                                 <div className="flex items-center gap-2">
-                                    <StatusBadge status={devis.status} />
+                                    <StatusBadge status={quote.status} />
                                     <span className="text-sm text-muted-foreground">
-                                        Créé le {format(devis.createdAt, "dd MMMM yyyy", { locale: fr })}
+                                        Créé le {format(quote.createdAt, "dd MMMM yyyy", { locale: fr })}
                                     </span>
                                 </div>
                             </div>
@@ -305,15 +199,15 @@ export default function DevisDetailPage({ id }: { id: string }) {
                                 <h2 className="text-lg font-semibold mb-3">Client</h2>
                                 <div className="space-y-2">
                                     <div>
-                                        <div className="font-medium">{devis.client.name}</div>
-                                        <div className="text-sm text-muted-foreground">{devis.client.email}</div>
+                                        <div className="font-medium">{quote.client.name}</div>
+                                        <div className="text-sm text-muted-foreground">{quote.client.email}</div>
                                     </div>
                                     <div className="text-sm">
-                                        <div>{devis.client.address.street}</div>
+                                        <div>{quote.client.address.street}</div>
                                         <div>
-                                            {devis.client.address.postalCode} {devis.client.address.city}
+                                            {quote.client.address.postalCode} {quote.client.address.city}
                                         </div>
-                                        <div>{devis.client.address.country}</div>
+                                        <div>{quote.client.address.country}</div>
                                     </div>
                                 </div>
                             </div>
@@ -323,18 +217,18 @@ export default function DevisDetailPage({ id }: { id: string }) {
                                 <h2 className="text-lg font-semibold mb-3">Entreprise</h2>
                                 <div className="space-y-2">
                                     <div>
-                                        <div className="font-medium">{devis.company.name}</div>
-                                        <div className="text-sm text-muted-foreground">{devis.company.email}</div>
+                                        <div className="font-medium">{quote.company.name}</div>
+                                        <div className="text-sm text-muted-foreground">{quote.company.email}</div>
                                     </div>
                                     <div className="text-sm">
-                                        <div>{devis.company.address.street}</div>
+                                        <div>{quote.company.address.street}</div>
                                         <div>
-                                            {devis.company.address.postalCode} {devis.company.address.city}
+                                            {quote.company.address.postalCode} {quote.company.address.city}
                                         </div>
-                                        <div>{devis.company.address.country}</div>
+                                        <div>{quote.company.address.country}</div>
                                     </div>
                                     <div className="text-sm">
-                                        <span className="font-medium">TVA:</span> {devis.company.taxId}
+                                        <span className="font-medium">TVA:</span> {quote.company.taxId}
                                     </div>
                                 </div>
                             </div>
@@ -347,14 +241,14 @@ export default function DevisDetailPage({ id }: { id: string }) {
                                         <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
                                         <div>
                                             <span className="text-sm font-medium">Création:</span>{" "}
-                                            <span className="text-sm">{format(devis.createdAt, "dd MMMM yyyy", { locale: fr })}</span>
+                                            <span className="text-sm">{format(quote.createdAt, "dd MMMM yyyy", { locale: fr })}</span>
                                         </div>
                                     </div>
                                     <div className="flex items-center">
                                         <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
                                         <div>
                                             <span className="text-sm font-medium">Échéance:</span>{" "}
-                                            <span className="text-sm">{format(devis.dueDate, "dd MMMM yyyy", { locale: fr })}</span>
+                                            <span className="text-sm">{format(quote.dueDate, "dd MMMM yyyy", { locale: fr })}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -379,7 +273,7 @@ export default function DevisDetailPage({ id }: { id: string }) {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {devis.items.map((item) => (
+                                            {quote.items.map((item) => (
                                                 <TableRow key={item.id}>
                                                     <TableCell className="align-top">
                                                         <div className="font-medium">{item.name}</div>
@@ -412,11 +306,11 @@ export default function DevisDetailPage({ id }: { id: string }) {
                                         <span className="text-muted-foreground">TVA</span>
                                         <span>{formatAmount(calculateTaxes())}</span>
                                     </div>
-                                    {devis.discount && (
+                                    {quote.discount && (
                                         <div className="flex justify-between">
                                             <span className="text-muted-foreground">
                                                 Remise
-                                                {devis.discount.type === "percentage" ? ` (${devis.discount.value}%)` : ""}
+                                                {quote.discount.type === "percentage" ? ` (${quote.discount.value}%)` : ""}
                                             </span>
                                             <span>-{formatAmount(calculateDiscount())}</span>
                                         </div>
@@ -430,10 +324,10 @@ export default function DevisDetailPage({ id }: { id: string }) {
                             </div>
 
                             {/* Notes */}
-                            {devis.notes && (
+                            {quote.notes && (
                                 <div className="md:order-1">
                                     <h2 className="text-lg font-semibold mb-3">Notes</h2>
-                                    <div className="text-sm text-muted-foreground bg-muted/30 p-4 rounded-md">{devis.notes}</div>
+                                    <div className="text-sm text-muted-foreground bg-muted/30 p-4 rounded-md">{quote.notes}</div>
                                 </div>
                             )}
                         </div>
