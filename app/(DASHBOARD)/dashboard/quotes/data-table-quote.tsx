@@ -42,7 +42,11 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
 import { paths } from "@/paths"
-import { Quote } from "@/actions/quote"
+import { Quote, duplicateQuote, deleteQuote, getQuoteById } from "@/actions/quote"
+import { useAction } from "@/hooks/use-action"
+import { toast } from "sonner"
+import { QuotePdfGenerator } from "@/components/quotes/quote-pdf-generator"
+import { formatCurrency } from "@/lib/utils"
 
 // Types
 type DevisStatus = "DRAFT" | "SENT" | "ACCEPTED" | "REJECTED" | "CONVERTED"
@@ -88,8 +92,99 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
     const [currentPage, setCurrentPage] = useState(1)
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [devisToDelete, setDevisToDelete] = useState<string | null>(null)
+    const [downloadingPdfId, setDownloadingPdfId] = useState<string | null>(null)
+    const [duplicatingId, setDuplicatingId] = useState<string | null>(null)
     const [itemsPerPage, setItemsPerPage] = useState(5)
     const router = useRouter()
+
+    // Bind server actions with the useAction hook
+    const { execute: executeDuplicate, isLoading: isDuplicating } = useAction<{ id: string }, any>(duplicateQuote as any, {
+        onSuccess: (data) => {
+            // Then safely access the quoteId property
+            const quoteId = data?.quoteId || data?.data?.quoteId;
+
+            if (quoteId) {
+                toast.success("Devis dupliqué avec succès", {
+                    description: `Vous pouvez modifier le devis dupliqué avec l'ID ${quoteId}`,
+                });
+                router.push(paths.dashboard.quotes.detail(quoteId));
+            } else {
+                toast.error("Erreur lors de la duplication du devis");
+            }
+            setDuplicatingId(null);
+        },
+        onError: (error) => {
+            toast.error(error);
+            setDuplicatingId(null);
+        }
+    });
+
+    const { execute: executeDelete, isLoading: isDeleting } = useAction<{ id: string }, any>(deleteQuote as any, {
+        onSuccess: (data) => {
+            toast.success("Devis supprimé avec succès");
+            setDeleteDialogOpen(false);
+            setDevisToDelete(null);
+            router.refresh(); // Refresh the page to show updated list
+        },
+        onError: (error) => {
+            toast.error(error);
+            setDeleteDialogOpen(false);
+            setDevisToDelete(null);
+        }
+    });
+
+    const { execute: executeGetQuote } = useAction<{ id: string }, any>(getQuoteById as any, {
+        onSuccess: async (data) => {
+            const quoteDetail = data?.quote;
+
+            if (quoteDetail && downloadingPdfId) {
+                try {
+                    // Définir les fonctions de calcul
+                    const calculateSubtotal = () => {
+                        return quoteDetail.items.reduce((total: number, item: any) => total + item.quantity * item.unitPrice, 0)
+                    }
+
+                    const calculateTaxes = () => {
+                        return quoteDetail.items.reduce((total: number, item: any) => total + (item.quantity * item.unitPrice * item.taxRate) / 100, 0)
+                    }
+
+                    const calculateDiscount = () => {
+                        if (!quoteDetail.discount) return 0
+                        const subtotal = calculateSubtotal()
+                        return quoteDetail.discount.type === "percentage" ? (subtotal * quoteDetail.discount.value) / 100 : quoteDetail.discount.value
+                    }
+
+                    const calculateTotal = () => {
+                        return calculateSubtotal() + calculateTaxes() - calculateDiscount()
+                    }
+
+                    // Générer et télécharger le PDF
+                    const pdfGenerator = new QuotePdfGenerator(
+                        quoteDetail,
+                        formatCurrency,
+                        calculateSubtotal,
+                        calculateTaxes,
+                        calculateDiscount,
+                        calculateTotal
+                    );
+                    await pdfGenerator.generateAndDownload();
+                    toast.success("PDF généré avec succès");
+                } catch (error) {
+                    console.error("Erreur lors de la génération du PDF:", error);
+                    toast.error("Erreur lors de la génération du PDF");
+                } finally {
+                    setDownloadingPdfId(null);
+                }
+            } else {
+                toast.error("Erreur lors de la récupération des données du devis");
+                setDownloadingPdfId(null);
+            }
+        },
+        onError: (error) => {
+            toast.error(`Erreur: ${error}`);
+            setDownloadingPdfId(null);
+        }
+    });
 
     const handlePageChange = (newPage: number) => {
         // Animation de sortie
@@ -114,10 +209,20 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
 
     // Formater le montant en euros
     const formatAmount = (amount: number) => {
-        return new Intl.NumberFormat("fr-FR", {
-            style: "currency",
-            currency: "EUR",
-        }).format(amount)
+        return formatCurrency(amount)
+    }
+
+    // Gérer la duplication d'un devis
+    const handleDuplicateQuote = (id: string) => {
+        setDuplicatingId(id);
+        executeDuplicate({ id });
+    }
+
+    // Gérer le téléchargement du PDF
+    const handleDownloadPdf = (id: string) => {
+        setDownloadingPdfId(id);
+        toast.info("Génération du PDF en cours...");
+        executeGetQuote({ id });
     }
 
     // Gérer la suppression d'un devis
@@ -127,10 +232,9 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
     }
 
     const confirmDeleteDevis = () => {
-        // Logique de suppression ici
-        console.log(`Devis ${devisToDelete} supprimé`)
-        setDeleteDialogOpen(false)
-        setDevisToDelete(null)
+        if (devisToDelete) {
+            executeDelete({ id: devisToDelete });
+        }
     }
 
     // Composant pour l'état vide
@@ -292,13 +396,19 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
                                                                     <Edit className="mr-2 h-4 w-4" />
                                                                     Modifier
                                                                 </DropdownMenuItem>
-                                                                <DropdownMenuItem onClick={() => console.log(`Dupliquer devis ${devis.id}`)}>
+                                                                <DropdownMenuItem
+                                                                    onClick={() => handleDuplicateQuote(devis.id)}
+                                                                    disabled={duplicatingId === devis.id}
+                                                                >
                                                                     <Copy className="mr-2 h-4 w-4" />
-                                                                    Dupliquer
+                                                                    {duplicatingId === devis.id ? "Duplication..." : "Dupliquer"}
                                                                 </DropdownMenuItem>
-                                                                <DropdownMenuItem onClick={() => console.log(`Télécharger devis ${devis.id}`)}>
+                                                                <DropdownMenuItem
+                                                                    onClick={() => handleDownloadPdf(devis.id)}
+                                                                    disabled={downloadingPdfId === devis.id}
+                                                                >
                                                                     <Download className="mr-2 h-4 w-4" />
-                                                                    Télécharger
+                                                                    {downloadingPdfId === devis.id ? "Génération..." : "Télécharger PDF"}
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuSeparator />
                                                                 <DropdownMenuItem
@@ -415,11 +525,11 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                        <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting}>
                             Annuler
                         </Button>
-                        <Button variant="destructive" onClick={confirmDeleteDevis}>
-                            Supprimer
+                        <Button variant="destructive" onClick={confirmDeleteDevis} disabled={isDeleting}>
+                            {isDeleting ? "Suppression..." : "Supprimer"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
