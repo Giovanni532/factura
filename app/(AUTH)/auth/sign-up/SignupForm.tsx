@@ -117,15 +117,15 @@ export default function SignupForm() {
                     router.push(paths.dashboard.home);
                 },
                 onError: (ctx) => {
-                    setError(ctx.error.message);
+                    setError("Une erreur est survenue lors de l'inscription");
                 },
             });
 
             if (error) {
-                setError(error.message || "An unexpected error occurred");
+                setError(error.message || "Une erreur est survenue lors de l'inscription");
             }
         } catch (err) {
-            setError("An unexpected error occurred");
+            setError("Une erreur est survenue lors de l'inscription");
         } finally {
             setIsLoading(false);
         }

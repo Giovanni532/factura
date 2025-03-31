@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Factura - Invoicing and Business Management Application
 
-## Getting Started
+A modern invoicing and business management web application built with Next.js, allowing users to manage clients, quotes, invoices, and payments.
 
-First, run the development server:
+## Prerequisites
+
+- Node.js 18 or later
+- pnpm package manager
+- PostgreSQL database
+- Docker and Docker Compose (optional, for local database setup)
+
+## Installation
+
+1. Clone the repository:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/your-username/factura.git
+cd factura
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Set up your environment variables by creating a `.env` file in the root directory with the following variables:
 
-## Learn More
+```
+BETTER_AUTH_SECRET=your_auth_secret
+NEXT_PUBLIC_APP_URL=your_app_url
+DATABASE_URL=your_database_url
+RESEND_API_KEY=your_resend_api_key
+```
 
-To learn more about Next.js, take a look at the following resources:
+4. Database setup:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   - **Option 1**: Use Docker Compose to set up a local PostgreSQL database:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```bash
+   docker-compose up -d
+   ```
 
-## Deploy on Vercel
+   - **Option 2**: Connect to an existing PostgreSQL database by setting the correct `DATABASE_URL` in your `.env` file.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+5. Initialize and set up the database:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+pnpm dlx prisma db push
+```
+
+## Development
+
+Run the development server:
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
+
+## Build for Production
+
+```bash
+pnpm build
+pnpm start
+```
+
+## Features
+
+- User authentication and management
+- Client management
+- Quote and invoice creation
+- Item and service catalog
+- Payment tracking
+- Business profile management
+- Subscription management
+
+## Tech Stack
+
+- Next.js 15
+- TypeScript
+- Prisma ORM
+- PostgreSQL
+- TailwindCSS
+- Shadcn UI
+- Better Auth
+- Resend (for emails)
+
+## Restrictions d'utilisation ®
+
+Cette application Factura® est protégée par des droits de propriété intellectuelle. Seul le propriétaire original est autorisé à déployer cette application en environnement de production. Toute reproduction, distribution ou déploiement par un tiers est strictement interdit sans autorisation écrite explicite.
+

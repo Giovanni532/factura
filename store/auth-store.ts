@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { getSession, signIn, signOut, signUp } from '@/lib/auth-client'
+import { authClient } from '@/lib/auth-client'
 
 interface User {
     id?: string
@@ -15,9 +15,9 @@ interface AuthState {
     setUser: (user: User | null) => void
     setIsAuthenticated: (isAuthenticated: boolean) => void
     setIsLoading: (isLoading: boolean) => void
-    login: typeof signIn.email
-    register: typeof signUp.email
-    logout: typeof signOut
+    login: typeof authClient.signIn.email
+    register: typeof authClient.signUp.email
+    logout: typeof authClient.signOut
     checkAuth: () => Promise<void>
 }
 
@@ -30,14 +30,14 @@ export const useAuthStore = create<AuthState>((set) => ({
     setIsAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
     setIsLoading: (isLoading) => set({ isLoading }),
 
-    login: signIn.email,
-    register: signUp.email,
-    logout: signOut,
+    login: authClient.signIn.email,
+    register: authClient.signUp.email,
+    logout: authClient.signOut,
 
     checkAuth: async () => {
         set({ isLoading: true })
         try {
-            const { data: session, error } = await getSession()
+            const { data: session, error } = await authClient.getSession()
             if (error || !session) {
                 set({ isAuthenticated: false, user: null })
             } else {

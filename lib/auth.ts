@@ -7,6 +7,22 @@ export const auth = betterAuth({
         provider: "postgresql",
     }),
     emailAndPassword: {
-        enabled: true
+        enabled: true,
+        sendResetPassword: async ({ user, url, token }, request) => {
+            await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/resend/password-reset`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: user.email,
+                    name: user.name,
+                    url: url,
+                    token: token,
+                }),
+            });
+        },
+        resetPasswordTokenExpiresIn: 3600, // 1 hour
     },
+    
 });

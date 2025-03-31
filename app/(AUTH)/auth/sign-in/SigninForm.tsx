@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { EyeIcon, EyeOffIcon, ArrowRightIcon, CheckCircleIcon } from "lucide-react"
+import { EyeIcon, EyeOffIcon, ArrowRightIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { paths } from "@/paths"
 import { useAuthStore } from "@/store/auth-store"
@@ -50,12 +50,12 @@ export default function SignInForm() {
                     router.push(paths.dashboard.home);
                 },
                 onError: (ctx) => {
-                    setError(ctx.error.message);
+                    setError("Une erreur est survenue lors de la connexion");
                 },
             });
 
             if (error) {
-                setError(error.message || "Une erreur est survenue lors de la connexion");
+                setError("Une erreur est survenue lors de la connexion");
             }
         } catch (err) {
             setError("Une erreur est survenue lors de la connexion");
@@ -131,7 +131,7 @@ export default function SignInForm() {
                             </motion.div>
 
                             <motion.div variants={itemVariants} className="flex justify-end">
-                                <Link href="/auth/forgot-password" className="text-sm text-primary hover:underline">
+                                <Link href={paths.auth.forgetPassword} className="text-sm text-primary hover:underline">
                                     Mot de passe oublié ?
                                 </Link>
                             </motion.div>

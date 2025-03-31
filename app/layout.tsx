@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/navbar";
 import { ThemeProvider } from "next-themes";
 import { OrganizationJsonLd, WebsiteJsonLd } from "@/components/SEO/JsonLd";
+import { Toaster } from "@/components/ui/sonner"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -93,6 +94,7 @@ export default function RootLayout({
         >
           <Navbar />
           {children}
+          <Toaster />
           <OrganizationJsonLd />
           <WebsiteJsonLd />
         </ThemeProvider>

@@ -73,10 +73,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuthStore()
 
   const userData = user ? {
+    id: user.id as string,
     name: user.name || "Utilisateur",
     email: user.email || "user@example.com",
     avatar: user.image || "/avatars/default.jpg",
   } : {
+    id: "",
     name: "Utilisateur",
     email: "user@example.com",
     avatar: "/avatars/default.jpg",
@@ -100,7 +102,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={userData} payments={paths.dashboard.payments} billing={paths.dashboard.billing} />
+        <NavUser user={userData} subscription={paths.dashboard.subscription} />
       </SidebarFooter>
     </Sidebar>
   )
