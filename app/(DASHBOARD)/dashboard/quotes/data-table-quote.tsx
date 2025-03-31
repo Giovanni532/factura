@@ -147,7 +147,7 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
             <p className="text-muted-foreground text-center max-w-md mb-6">
                 Vous n'avez pas encore créé de devis ou aucun devis ne correspond à vos critères de recherche.
             </p>
-            <Button onClick={() => console.log("Créer un nouveau devis")}>
+            <Button onClick={() => router.push(paths.dashboard.quotes.create)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Créer un devis
             </Button>
@@ -167,7 +167,7 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
                         Devis
                     </motion.h1>
                     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-                        <Button size="default" onClick={() => console.log("Nouveau devis")}>
+                        <Button size="default" onClick={() => router.push(paths.dashboard.quotes.create)}>
                             <Plus className="mr-2 h-4 w-4" />
                             Nouveau devis
                         </Button>
