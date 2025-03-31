@@ -204,6 +204,7 @@ enum QuoteStatus {
   SENT
   ACCEPTED
   REJECTED
+  CONVERTED
 }
 
 enum InvoiceStatus {

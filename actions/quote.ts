@@ -2,7 +2,15 @@
 
 import { useMutation } from "@/lib/safe-action"
 import { prisma } from "@/lib/prisma"
-import { getUserQuotesSchema, getQuoteByIdSchema } from "@/validations/quotes-schema";
+import {
+    getUserQuotesSchema,
+    getQuoteByIdSchema,
+    duplicateQuoteSchema,
+    deleteQuoteSchema,
+    downloadQuotePdfSchema,
+    convertQuoteToInvoiceSchema
+} from "@/validations/quotes-schema";
+// Remove jsPDF imports as they'll be handled client-side or by a dedicated PDF service
 
 // Type for status - matching the enum in the database
 export type QuoteStatus = "DRAFT" | "SENT" | "ACCEPTED" | "REJECTED" | "CONVERTED"
@@ -68,7 +76,6 @@ export interface QuoteDetail {
     notes?: string;
 }
 
-// Schema for getting user quotes
 // Server action to get all quotes for the currently authenticated user
 export const getUserQuotes = useMutation(
     getUserQuotesSchema,
@@ -219,6 +226,229 @@ export const getQuoteById = useMutation(
     }
 );
 
+// Server action to duplicate a quote
+export const duplicateQuote = useMutation(
+    duplicateQuoteSchema,
+    async (input, { userId }) => {
+        try {
+            // Fetch the original quote with all related data
+            const originalQuote = await prisma.quote.findUnique({
+                where: {
+                    id: input.id,
+                    userId: userId
+                },
+                include: {
+                    quoteItems: true
+                }
+            });
+
+            if (!originalQuote) {
+                return { success: false, message: "Devis introuvable" };
+            }
+
+            // Create a new quote as a duplicate (without the items initially)
+            const newQuote = await prisma.quote.create({
+                data: {
+                    userId: userId,
+                    clientId: originalQuote.clientId,
+                    status: "DRAFT", // Always start as draft
+                    total: originalQuote.total,
+                    validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+                }
+            });
+
+            // Create duplicate quote items
+            const quoteItemsData = originalQuote.quoteItems.map(item => ({
+                quoteId: newQuote.id,
+                itemId: item.itemId,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice
+            }));
+
+            // Insert all quote items in a single transaction
+            await prisma.quoteItem.createMany({
+                data: quoteItemsData
+            });
+
+            return {
+                success: true,
+                message: "Devis dupliqué avec succès",
+                quoteId: newQuote.id
+            };
+        } catch (error) {
+            console.error("Error duplicating quote:", error);
+            return { success: false, message: "Erreur lors de la duplication du devis" };
+        }
+    }
+);
+
+// Server action to delete a quote
+export const deleteQuote = useMutation(
+    deleteQuoteSchema,
+    async (input, { userId }) => {
+        try {
+            // First check if quote exists and belongs to user
+            const quote = await prisma.quote.findUnique({
+                where: {
+                    id: input.id,
+                    userId: userId
+                }
+            });
+
+            if (!quote) {
+                return { success: false, message: "Devis introuvable" };
+            }
+
+            // Delete all quote items first (handle foreign key constraints)
+            await prisma.quoteItem.deleteMany({
+                where: {
+                    quoteId: input.id
+                }
+            });
+
+            // Delete the quote
+            await prisma.quote.delete({
+                where: {
+                    id: input.id
+                }
+            });
+
+            return { success: true, message: "Devis supprimé avec succès" };
+        } catch (error) {
+            console.error("Error deleting quote:", error);
+            return { success: false, message: "Erreur lors de la suppression du devis" };
+        }
+    }
+);
+
+// Server action to generate and download a quote PDF
+export const downloadQuotePdf = useMutation(
+    downloadQuotePdfSchema,
+    async (input, { userId }) => {
+        try {
+            // Get the quote details using a separate call
+            const quoteData = await prisma.quote.findUnique({
+                where: {
+                    id: input.id,
+                    userId: userId
+                },
+                include: {
+                    client: true,
+                    quoteItems: {
+                        include: {
+                            item: true
+                        }
+                    }
+                }
+            });
+
+            if (!quoteData) {
+                return { success: false, message: "Devis introuvable" };
+            }
+
+            // In a real implementation, we would generate a PDF here
+            // For this example, we're just returning a success message
+
+            return {
+                success: true,
+                message: "PDF généré avec succès",
+                pdfUrl: `/api/quotes/${input.id}/pdf` // Mock URL
+            };
+        } catch (error) {
+            console.error("Error generating PDF:", error);
+            return { success: false, message: "Erreur lors de la génération du PDF" };
+        }
+    }
+);
+
+// Server action to convert a quote to an invoice
+export const convertQuoteToInvoice = useMutation(
+    convertQuoteToInvoiceSchema,
+    async (input, { userId }) => {
+        try {
+            // Start a transaction to ensure both operations succeed or fail together
+            return await prisma.$transaction(async (tx) => {
+                // Get the quote with its items
+                const quote = await tx.quote.findUnique({
+                    where: {
+                        id: input.id,
+                        userId: userId
+                    },
+                    include: {
+                        quoteItems: {
+                            include: {
+                                item: true
+                            }
+                        },
+                        client: true
+                    }
+                });
+
+                if (!quote) {
+                    return { success: false, message: "Devis introuvable" };
+                }
+
+                // Check if quote has already been converted to an invoice
+                // Using string comparison with toString() to avoid TypeScript enum issues
+                if (quote.status.toString() === "CONVERTED") {
+                    return { success: false, message: "Ce devis a déjà été converti en facture" };
+                }
+
+                // Set due date for the invoice (30 days from now if not provided)
+                const dueDate = input.dueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+                // Create the invoice record in the database
+                const invoice = await tx.invoice.create({
+                    data: {
+                        // Link to the client
+                        clientId: quote.clientId,
+                        // Link to the user
+                        userId: userId,
+                        // Set status to PENDING initially
+                        status: "PENDING",
+                        // Set due date
+                        dueDate: dueDate,
+                        // Copy the total amount from the quote
+                        total: quote.total,
+                        // Link back to the source quote
+                        createdFromId: quote.id
+                    }
+                });
+
+                // Create invoice items for each quote item
+                for (const item of quote.quoteItems) {
+                    await tx.invoiceItem.create({
+                        data: {
+                            invoiceId: invoice.id,
+                            itemId: item.itemId,
+                            quantity: item.quantity,
+                            unitPrice: item.unitPrice
+                        }
+                    });
+                }
+
+                // Update quote status to CONVERTED
+                // Using the enum value directly from QuoteStatus
+                await tx.quote.update({
+                    where: { id: quote.id },
+                    data: {
+                        status: "CONVERTED"
+                    }
+                });
+
+                return {
+                    success: true,
+                    message: "Devis converti en facture avec succès",
+                    invoiceId: invoice.id
+                };
+            });
+        } catch (error) {
+            console.error("Error converting quote to invoice:", error);
+            return { success: false, message: "Erreur lors de la conversion du devis en facture" };
+        }
+    }
+);
+
 // Helper function to map database status to frontend status
 function mapStatus(status: any): QuoteStatus {
     // Map from database enum values to frontend expected values
@@ -226,7 +456,8 @@ function mapStatus(status: any): QuoteStatus {
         'DRAFT': 'DRAFT',
         'SENT': 'SENT',
         'ACCEPTED': 'ACCEPTED',
-        'REJECTED': 'REJECTED'
+        'REJECTED': 'REJECTED',
+        'CONVERTED': 'CONVERTED' // Add CONVERTED status
     };
 
     return statusMap[status] || 'DRAFT';

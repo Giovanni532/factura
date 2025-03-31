@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { format } from "date-fns"
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { toast } from "sonner"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -28,10 +29,34 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { paths } from "@/paths"
-import { QuoteDetail, QuoteStatus } from "@/actions/quote"
+import { QuoteDetail, QuoteStatus, duplicateQuote, deleteQuote, downloadQuotePdf, convertQuoteToInvoice } from "@/actions/quote"
+import { useAction } from "@/hooks/use-action"
+import { QuotePdfGenerator } from "@/components/quotes/quote-pdf-generator"
+import { QuotePrintService } from "@/components/quotes/quote-print-service"
+import { formatCurrency } from "@/lib/utils"
 
 // Types
 type DevisStatus = QuoteStatus
+
+// Types for server action results
+interface ActionResult {
+    success: boolean;
+    message: string;
+}
+
+interface DuplicateQuoteResult extends ActionResult {
+    quoteId?: string;
+}
+
+interface DeleteQuoteResult extends ActionResult { }
+
+interface DownloadPdfResult extends ActionResult {
+    pdfUrl?: string;
+}
+
+interface ConvertToInvoiceResult extends ActionResult {
+    invoiceId?: string;
+}
 
 // Composant pour afficher le statut avec un badge
 const StatusBadge = ({ status }: { status: DevisStatus }) => {
@@ -68,6 +93,96 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
     const router = useRouter()
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [convertDialogOpen, setConvertDialogOpen] = useState(false)
+    const contentRef = useRef<HTMLDivElement>(null)
+
+    // Print styles
+    useEffect(() => {
+        // Add print styles to head
+        const styleElement = document.createElement('style');
+        styleElement.setAttribute('media', 'print');
+        styleElement.innerHTML = `
+            @page { size: A4; margin: 1.5cm; }
+            body * { visibility: hidden; }
+            .print-content, .print-content * { visibility: visible; }
+            .print-content { position: absolute; left: 0; top: 0; width: 100%; }
+            .print-hidden { display: none !important; }
+            
+            /* Reset some UI styles for print */
+            .card { box-shadow: none !important; border: none !important; }
+            .badge { border: 1px solid #ddd !important; padding: 2px 6px !important; }
+            
+            /* Improve table appearance */
+            table { border-collapse: collapse; width: 100%; }
+            th, td { padding: 8px; border-bottom: 1px solid #ddd; }
+            th { font-weight: bold; text-align: left; }
+            
+            /* Let content flow naturally */
+            @page { margin: 1.5cm; }
+            html, body { height: auto; }
+            .print-content { position: static; }
+            
+            /* Ensure table doesn't break across pages */
+            .table { page-break-inside: avoid; }
+            
+            /* Add page breaks where needed */
+            .page-break-after { page-break-after: always; }
+        `;
+        document.head.appendChild(styleElement);
+
+        // Clean up
+        return () => {
+            document.head.removeChild(styleElement);
+        };
+    }, []);
+
+    // Bind server actions with the useAction hook
+    const { execute: executeDuplicate, isLoading: isDuplicating } = useAction<{ id: string }, any>(duplicateQuote as any, {
+        onSuccess: (data) => {
+            // Then safely access the quoteId property
+            const quoteId = data?.quoteId || data?.data?.quoteId;
+
+            if (quoteId) {
+                toast.success("Devis dupliqué avec succès", {
+                    description: `Vous pouvez désormais modifier le devis dupliqué avec l'ID ${quoteId}`,
+                });
+                router.push(paths.dashboard.quotes.detail(quoteId));
+            } else {
+                toast.error("Erreur lors de la duplication du devis");
+            }
+        },
+        onError: (error) => {
+            toast.error(error);
+        }
+    });
+
+    const { execute: executeDelete, isLoading: isDeleting } = useAction<{ id: string }, DeleteQuoteResult>(deleteQuote as any, {
+        onSuccess: (data) => {
+            toast.success("Devis supprimé avec succès");
+            setDeleteDialogOpen(false);
+            router.push(paths.dashboard.quotes.list);
+        },
+        onError: (error) => {
+            toast.error(error);
+            setDeleteDialogOpen(false);
+        }
+    });
+
+    const { execute: executeConvert, isLoading: isConverting } = useAction<{ id: string }, ConvertToInvoiceResult>(convertQuoteToInvoice as any, {
+        onSuccess: (data) => {
+            toast.success("Devis converti en facture avec succès");
+            setConvertDialogOpen(false);
+            if (data.invoiceId) {
+                router.push(`/dashboard/invoices/${data.invoiceId}`);
+            } else {
+                // Just refresh the page to show the updated status
+                router.refresh();
+            }
+        },
+        onError: (error) => {
+            toast.error(error);
+            setConvertDialogOpen(false);
+        }
+    });
 
     // Calculs financiers
     const calculateSubtotal = () => {
@@ -90,11 +205,32 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
 
     // Formater le montant en euros
     const formatAmount = (amount: number) => {
-        return new Intl.NumberFormat("fr-FR", {
-            style: "currency",
-            currency: "EUR",
-        }).format(amount)
+        return formatCurrency(amount)
     }
+
+    // Gérer la duplication d'un devis
+    const handleDuplicateQuote = () => {
+        executeDuplicate({ id: quote.id });
+    }
+
+    // Gérer l'impression d'un devis avec une meilleure mise en page
+    const handlePrintQuote = async () => {
+        const printService = new QuotePrintService(quote, formatAmount, calculateSubtotal, calculateTaxes, calculateDiscount, calculateTotal);
+        printService.print(contentRef.current);
+    };
+
+    // Gérer le téléchargement du PDF avec jsPDF
+    const handleDownloadPdf = async () => {
+        toast.info("Génération du PDF en cours...");
+        try {
+            const pdfGenerator = new QuotePdfGenerator(quote, formatAmount, calculateSubtotal, calculateTaxes, calculateDiscount, calculateTotal);
+            await pdfGenerator.generateAndDownload();
+            toast.success("PDF généré avec succès");
+        } catch (error) {
+            console.error("Erreur lors de la génération du PDF:", error);
+            toast.error("Erreur lors de la génération du PDF");
+        }
+    };
 
     // Gérer la suppression d'un devis
     const handleDeleteDevis = () => {
@@ -102,10 +238,7 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
     }
 
     const confirmDeleteDevis = () => {
-        // Logique de suppression ici
-        console.log(`Devis ${quote.id} supprimé`)
-        setDeleteDialogOpen(false)
-        router.push(paths.dashboard.quotes.list) // Redirection vers la liste des devis
+        executeDelete({ id: quote.id });
     }
 
     // Gérer la conversion en facture
@@ -114,24 +247,23 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
     }
 
     const confirmConvertToInvoice = () => {
-        // Logique de conversion ici
-        console.log(`Devis ${quote.id} converti en facture`)
-        setConvertDialogOpen(false)
-        // Redirection vers la facture nouvellement créée
-        // router.push(`/factures/${newInvoiceId}`)
+        executeConvert({ id: quote.id });
     }
+
+    // Vérifier si le devis peut être converti
+    const canBeConverted = quote.status !== "CONVERTED";
 
     return (
         <div className="container mx-auto px-4 py-6 max-w-7xl">
             <div className="flex flex-col space-y-8">
                 {/* Bouton retour */}
-                <Button variant="ghost" size="sm" className="w-fit" onClick={() => router.push(paths.dashboard.quotes.list)}>
+                <Button variant="ghost" size="sm" className="w-fit print-hidden" onClick={() => router.push(paths.dashboard.quotes.list)}>
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Retour aux devis
                 </Button>
                 {/* Contenu principal */}
                 <Card className="w-full">
-                    <CardContent className="p-6 sm:p-8">
+                    <CardContent className="p-6 sm:p-8" ref={contentRef}>
                         {/* En-tête de la carte */}
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                             <div className="flex flex-col gap-2">
@@ -151,16 +283,26 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
                             </div>
 
                             {/* Boutons d'action */}
-                            <div className="flex flex-wrap gap-2 sm:justify-end">
-                                <Button variant="outline" size="sm" onClick={() => console.log("Modifier")}>
+                            <div className="flex flex-wrap gap-2 sm:justify-end print-hidden">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => router.push(paths.dashboard.quotes.edit(quote.id))}
+                                    disabled={quote.status === "CONVERTED"}
+                                >
                                     <Edit className="mr-2 h-4 w-4" />
                                     Modifier
                                 </Button>
-                                <Button variant="outline" size="sm" onClick={() => console.log("Dupliquer")}>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleDuplicateQuote}
+                                    disabled={isDuplicating}
+                                >
                                     <Copy className="mr-2 h-4 w-4" />
-                                    Dupliquer
+                                    {isDuplicating ? "Duplication..." : "Dupliquer"}
                                 </Button>
-                                <Button variant="outline" size="sm" onClick={() => console.log("Imprimer")}>
+                                <Button variant="outline" size="sm" onClick={handlePrintQuote}>
                                     <Printer className="mr-2 h-4 w-4" />
                                     Imprimer
                                 </Button>
@@ -172,18 +314,24 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem onClick={handleConvertToInvoice}>
-                                            <Receipt className="mr-2 h-4 w-4" />
-                                            Convertir en facture
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => console.log("Télécharger PDF")}>
+                                        {canBeConverted && (
+                                            <DropdownMenuItem onClick={handleConvertToInvoice} disabled={isConverting}>
+                                                <Receipt className="mr-2 h-4 w-4" />
+                                                {isConverting ? "Conversion..." : "Convertir en facture"}
+                                            </DropdownMenuItem>
+                                        )}
+                                        <DropdownMenuItem onClick={handleDownloadPdf}>
                                             <Download className="mr-2 h-4 w-4" />
-                                            Télécharger PDF
+                                            {"Télécharger PDF"}
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={handleDeleteDevis}>
+                                        <DropdownMenuItem
+                                            className="text-destructive focus:text-destructive"
+                                            onClick={handleDeleteDevis}
+                                            disabled={isDeleting}
+                                        >
                                             <Trash2 className="mr-2 h-4 w-4" />
-                                            Supprimer
+                                            {isDeleting ? "Suppression..." : "Supprimer"}
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
@@ -345,11 +493,11 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                        <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting}>
                             Annuler
                         </Button>
-                        <Button variant="destructive" onClick={confirmDeleteDevis}>
-                            Supprimer
+                        <Button variant="destructive" onClick={confirmDeleteDevis} disabled={isDeleting}>
+                            {isDeleting ? "Suppression..." : "Supprimer"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -365,12 +513,12 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setConvertDialogOpen(false)}>
+                        <Button variant="outline" onClick={() => setConvertDialogOpen(false)} disabled={isConverting}>
                             Annuler
                         </Button>
-                        <Button onClick={confirmConvertToInvoice}>
+                        <Button onClick={confirmConvertToInvoice} disabled={isConverting}>
                             <Receipt className="mr-2 h-4 w-4" />
-                            Convertir
+                            {isConverting ? "Conversion..." : "Convertir"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

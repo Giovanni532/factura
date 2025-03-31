@@ -10,3 +10,24 @@ export const createQuoteSchema = z.object({
 export const getQuoteByIdSchema = z.object({
     id: z.string()
 });
+
+// Schema for duplicating a quote
+export const duplicateQuoteSchema = z.object({
+    id: z.string()
+});
+
+// Schema for deleting a quote
+export const deleteQuoteSchema = z.object({
+    id: z.string()
+});
+
+// Schema for downloading a quote as PDF
+export const downloadQuotePdfSchema = z.object({
+    id: z.string()
+});
+
+// Schema for converting a quote to an invoice
+export const convertQuoteToInvoiceSchema = z.object({
+    id: z.string(),
+    dueDate: z.date().optional() // Optional due date for the invoice
+});

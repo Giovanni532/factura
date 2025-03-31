@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
+import { Quote } from "@prisma/client"
 
 // Types
 type DevisStatus = "draft" | "sent" | "accepted" | "rejected" | "converted"
@@ -164,7 +165,7 @@ const productsData = [
     },
 ]
 
-export default function EditDevisPage({ params }: { params: { id: string } }) {
+export default function EditDevisPage({ quote }: { quote: Quote }) {
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(false)
     const [confirmCancel, setConfirmCancel] = useState(false)
@@ -323,7 +324,7 @@ export default function EditDevisPage({ params }: { params: { id: string } }) {
             // await updateDevis(params.id, formData)
 
             // Rediriger vers la page de détail du devis
-            router.push(`/dashboard/quotes/${params.id}`)
+            router.push(`/dashboard/quotes/${quote.id}`)
         } catch (error) {
             console.error("Erreur lors de la soumission du formulaire:", error)
         } finally {
@@ -339,7 +340,7 @@ export default function EditDevisPage({ params }: { params: { id: string } }) {
                     variant="ghost"
                     size="sm"
                     className="w-fit"
-                    onClick={() => router.push(`/dashboard/quotes/${params.id}`)}
+                    onClick={() => router.push(`/dashboard/quotes/${quote.id}`)}
                 >
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Retour au devis
@@ -347,7 +348,7 @@ export default function EditDevisPage({ params }: { params: { id: string } }) {
 
                 {/* Titre de la page */}
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Modifier le devis #{devisData.number}</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">Modifier le devis #{quote.number}</h1>
                     <p className="text-muted-foreground mt-1">
                         Modifiez les informations du devis et enregistrez vos changements.
                     </p>
