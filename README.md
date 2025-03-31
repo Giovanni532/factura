@@ -46,7 +46,8 @@ RESEND_API_KEY=your_resend_api_key
 5. Initialize and set up the database:
 
 ```bash
-pnpm dlx prisma db push
+pnpx prisma db push
+pnpx prisma db seed
 ```
 
 ## Development
