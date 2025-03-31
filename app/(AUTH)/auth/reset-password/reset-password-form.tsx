@@ -41,21 +41,18 @@ export default function ResetPasswordForm() {
   })
 
   useEffect(() => {
-    // Vérifier si le token est valide
     if (!token) {
       setIsValidToken(false)
     }
   }, [token])
 
   const checkPasswordStrength = (password: string) => {
-    // Critères de validation
     const lengthValid = password.length >= 8
     const hasUpperCase = /[A-Z]/.test(password)
     const hasLowerCase = /[a-z]/.test(password)
     const hasNumbers = /\d/.test(password)
     const hasSpecialChars = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)
 
-    // Calcul du score
     let score = 0
     if (lengthValid) score += 1
     if (hasUpperCase) score += 1
@@ -63,7 +60,6 @@ export default function ResetPasswordForm() {
     if (hasNumbers) score += 1
     if (hasSpecialChars) score += 1
 
-    // Détermination du message et de la couleur
     let message = ""
     let color = ""
 
@@ -149,7 +145,6 @@ export default function ResetPasswordForm() {
     setIsLoading(true)
 
     try {
-      // Utiliser l'API Better Auth pour réinitialiser le mot de passe
       const { error } = await authClient.resetPassword({
         token,
         newPassword: formData.password,
@@ -347,11 +342,10 @@ export default function ResetPasswordForm() {
                         {[1, 2, 3, 4, 5].map((index) => (
                           <motion.div
                             key={index}
-                            className={`h-1 w-5 rounded-full ${
-                              index <= passwordStrength.score
+                            className={`h-1 w-5 rounded-full ${index <= passwordStrength.score
                                 ? passwordStrength.color.replace("text-", "bg-")
                                 : "bg-gray-200 dark:bg-gray-700"
-                            }`}
+                              }`}
                             initial={{ width: 0 }}
                             animate={{ width: "1.25rem" }}
                             transition={{ duration: 0.2, delay: index * 0.05 }}

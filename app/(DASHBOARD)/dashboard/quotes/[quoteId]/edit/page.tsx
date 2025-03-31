@@ -1,7 +1,9 @@
 import React from 'react'
+import EditDevisPage from './quote-edit'
 
-export default function QuotesPageEdit() {
+export default async function QuotesPageEdit({ params }: { params: Promise<{ quoteId: string }> }) {
+    const { quoteId } = await params
     return (
-        <div>QuotesPageEdit</div>
+        <EditDevisPage params={{ id: quoteId }} />
     )
 }
