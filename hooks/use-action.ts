@@ -12,7 +12,6 @@ type UseActionOptions<TOutput> = {
     onComplete?: () => void;
 };
 
-// Generic hook for using server actions with proper loading state and callbacks
 export const useAction = <TInput, TOutput>(
     action: (data: TInput) => Promise<TOutput>,
     options: UseActionOptions<TOutput> = {}

@@ -298,12 +298,12 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
                                 <SelectValue placeholder="Filtrer par statut" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">Tous les devis</SelectItem>
-                                <SelectItem value="DRAFT">Brouillon</SelectItem>
-                                <SelectItem value="SENT">Envoyé</SelectItem>
-                                <SelectItem value="ACCEPTED">Accepté</SelectItem>
-                                <SelectItem value="REJECTED">Refusé</SelectItem>
-                                <SelectItem value="CONVERTED">Converti en facture</SelectItem>
+                                <SelectItem className="cursor-pointer" value="all">Tous les devis</SelectItem>
+                                <SelectItem className="cursor-pointer" value="DRAFT">Brouillon</SelectItem>
+                                <SelectItem className="cursor-pointer" value="SENT">Envoyé</SelectItem>
+                                <SelectItem className="cursor-pointer" value="ACCEPTED">Accepté</SelectItem>
+                                <SelectItem className="cursor-pointer" value="REJECTED">Refusé</SelectItem>
+                                <SelectItem className="cursor-pointer" value="CONVERTED">Converti en facture</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -315,12 +315,12 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
                                 <SelectValue placeholder="Filtrer par statut" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">Tous les devis</SelectItem>
-                                <SelectItem value="DRAFT">Brouillon</SelectItem>
-                                <SelectItem value="SENT">Envoyé</SelectItem>
-                                <SelectItem value="ACCEPTED">Accepté</SelectItem>
-                                <SelectItem value="REJECTED">Refusé</SelectItem>
-                                <SelectItem value="CONVERTED">Converti en facture</SelectItem>
+                                <SelectItem className="cursor-pointer" value="all">Tous les devis</SelectItem>
+                                <SelectItem className="cursor-pointer" value="DRAFT">Brouillon</SelectItem>
+                                <SelectItem className="cursor-pointer" value="SENT">Envoyé</SelectItem>
+                                <SelectItem className="cursor-pointer" value="ACCEPTED">Accepté</SelectItem>
+                                <SelectItem className="cursor-pointer" value="REJECTED">Refusé</SelectItem>
+                                <SelectItem className="cursor-pointer" value="CONVERTED">Converti en facture</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -379,7 +379,7 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
                                                     <TableCell>
                                                         <StatusBadge status={devis.status} />
                                                     </TableCell>
-                                                    <TableCell className="text-right">
+                                                    <TableCell className="text-right cursor-pointer">
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>
                                                                 <Button variant="ghost" size="icon">
@@ -388,15 +388,16 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
                                                                 </Button>
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="end">
-                                                                <DropdownMenuItem onClick={() => router.push(paths.dashboard.quotes.detail(devis.id))}>
+                                                                <DropdownMenuItem className="cursor-pointer" onClick={() => router.push(paths.dashboard.quotes.detail(devis.id))}>
                                                                     <Eye className="mr-2 h-4 w-4" />
                                                                     Voir
                                                                 </DropdownMenuItem>
-                                                                <DropdownMenuItem onClick={() => router.push(paths.dashboard.quotes.edit(devis.id))}>
+                                                                <DropdownMenuItem className="cursor-pointer" onClick={() => router.push(paths.dashboard.quotes.edit(devis.id))}>
                                                                     <Edit className="mr-2 h-4 w-4" />
                                                                     Modifier
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuItem
+                                                                    className="cursor-pointer"
                                                                     onClick={() => handleDuplicateQuote(devis.id)}
                                                                     disabled={duplicatingId === devis.id}
                                                                 >
@@ -404,6 +405,7 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
                                                                     {duplicatingId === devis.id ? "Duplication..." : "Dupliquer"}
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuItem
+                                                                    className="cursor-pointer"
                                                                     onClick={() => handleDownloadPdf(devis.id)}
                                                                     disabled={downloadingPdfId === devis.id}
                                                                 >
@@ -412,7 +414,7 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuSeparator />
                                                                 <DropdownMenuItem
-                                                                    className="text-destructive focus:text-destructive"
+                                                                    className="cursor-pointer text-destructive focus:text-destructive"
                                                                     onClick={() => handleDeleteDevis(devis.id)}
                                                                 >
                                                                     <Trash2 className="mr-2 h-4 w-4" />
