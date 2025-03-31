@@ -135,53 +135,77 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
 
     const { execute: executeGetQuote } = useAction<{ id: string }, any>(getQuoteById as any, {
         onSuccess: async (data) => {
-            const quoteDetail = data?.quote;
+            try {
+                console.log("Raw data received:", data);
+                console.log("Data structure:", Object.keys(data || {}));
 
-            if (quoteDetail && downloadingPdfId) {
-                try {
-                    // Définir les fonctions de calcul
-                    const calculateSubtotal = () => {
-                        return quoteDetail.items.reduce((total: number, item: any) => total + item.quantity * item.unitPrice, 0)
-                    }
+                // Extraire les détails du devis quelle que soit la structure
+                // La réponse peut être dans data.quote, data.data.quote ou directement dans data
+                let quoteDetail = null;
 
-                    const calculateTaxes = () => {
-                        return quoteDetail.items.reduce((total: number, item: any) => total + (item.quantity * item.unitPrice * item.taxRate) / 100, 0)
-                    }
-
-                    const calculateDiscount = () => {
-                        if (!quoteDetail.discount) return 0
-                        const subtotal = calculateSubtotal()
-                        return quoteDetail.discount.type === "percentage" ? (subtotal * quoteDetail.discount.value) / 100 : quoteDetail.discount.value
-                    }
-
-                    const calculateTotal = () => {
-                        return calculateSubtotal() + calculateTaxes() - calculateDiscount()
-                    }
-
-                    // Générer et télécharger le PDF
-                    const pdfGenerator = new QuotePdfGenerator(
-                        quoteDetail,
-                        formatCurrency,
-                        calculateSubtotal,
-                        calculateTaxes,
-                        calculateDiscount,
-                        calculateTotal
-                    );
-                    await pdfGenerator.generateAndDownload();
-                    toast.success("PDF généré avec succès");
-                } catch (error) {
-                    console.error("Erreur lors de la génération du PDF:", error);
-                    toast.error("Erreur lors de la génération du PDF");
-                } finally {
-                    setDownloadingPdfId(null);
+                if (data?.quote) {
+                    quoteDetail = data.quote;
+                } else if (data?.data?.quote) {
+                    quoteDetail = data.data.quote;
+                } else if (data && typeof data === 'object' && 'id' in data && 'number' in data && 'items' in data) {
+                    // Le devis est directement dans data
+                    quoteDetail = data;
                 }
-            } else {
-                toast.error("Erreur lors de la récupération des données du devis");
+
+                console.log("Extracted quote detail:", quoteDetail);
+
+                if (!quoteDetail) {
+                    toast.error("Impossible de récupérer les détails du devis");
+                    setDownloadingPdfId(null);
+                    return;
+                }
+
+                // Définir les fonctions de calcul
+                const calculateSubtotal = () => {
+                    return quoteDetail.items.reduce((total: number, item: any) =>
+                        total + (item.quantity * item.unitPrice), 0);
+                };
+
+                const calculateTaxes = () => {
+                    return quoteDetail.items.reduce((total: number, item: any) =>
+                        total + ((item.quantity * item.unitPrice * item.taxRate) / 100), 0);
+                };
+
+                const calculateDiscount = () => {
+                    if (!quoteDetail.discount) return 0;
+                    const subtotal = calculateSubtotal();
+                    return quoteDetail.discount.type === "percentage"
+                        ? (subtotal * quoteDetail.discount.value) / 100
+                        : quoteDetail.discount.value;
+                };
+
+                const calculateTotal = () => {
+                    return calculateSubtotal() + calculateTaxes() - calculateDiscount();
+                };
+
+                // Générer et télécharger le PDF
+                const pdfGenerator = new QuotePdfGenerator(
+                    quoteDetail,
+                    formatCurrency,
+                    calculateSubtotal,
+                    calculateTaxes,
+                    calculateDiscount,
+                    calculateTotal
+                );
+
+                toast.info("Finalisation du PDF...");
+                await pdfGenerator.generateAndDownload();
+                toast.success("PDF téléchargé avec succès");
+            } catch (error) {
+                console.error("Erreur détaillée lors du téléchargement du PDF:", error);
+                toast.error("Échec du téléchargement du PDF. Veuillez réessayer.");
+            } finally {
                 setDownloadingPdfId(null);
             }
         },
         onError: (error) => {
-            toast.error(`Erreur: ${error}`);
+            console.error("Erreur lors de la récupération des données:", error);
+            toast.error("Impossible de récupérer les données du devis");
             setDownloadingPdfId(null);
         }
     });
@@ -220,9 +244,24 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
 
     // Gérer le téléchargement du PDF
     const handleDownloadPdf = (id: string) => {
+        if (!id) {
+            toast.error("ID de devis invalide");
+            return;
+        }
+
         setDownloadingPdfId(id);
-        toast.info("Génération du PDF en cours...");
-        executeGetQuote({ id });
+        toast.info("Préparation du PDF...");
+
+        try {
+            // Petit délai pour éviter les problèmes de concurrence
+            setTimeout(() => {
+                executeGetQuote({ id });
+            }, 200);
+        } catch (error) {
+            console.error("Erreur lors du lancement du téléchargement:", error);
+            toast.error("Une erreur est survenue lors du téléchargement");
+            setDownloadingPdfId(null);
+        }
     }
 
     // Gérer la suppression d'un devis
