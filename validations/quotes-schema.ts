@@ -31,3 +31,28 @@ export const convertQuoteToInvoiceSchema = z.object({
     id: z.string(),
     dueDate: z.date().optional() // Optional due date for the invoice
 });
+
+// Schema for updating a quote
+export const updateQuoteSchema = z.object({
+    id: z.string(),
+    clientId: z.string(),
+    createdAt: z.date(),
+    dueDate: z.date(),
+    status: z.enum(["draft", "sent", "accepted", "rejected", "converted"]),
+    items: z.array(
+        z.object({
+            id: z.string(),
+            productId: z.string(),
+            name: z.string(),
+            description: z.string().optional(),
+            quantity: z.number().positive(),
+            unitPrice: z.number().min(0),
+            taxRate: z.number().min(0)
+        })
+    ),
+    discount: z.object({
+        type: z.enum(["percentage", "fixed"]),
+        value: z.number().min(0)
+    }).optional(),
+    notes: z.string().optional()
+});

@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
@@ -29,6 +28,9 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import { Quote } from "@prisma/client"
+import { updateQuote } from "@/actions/quote"
+import { useAction } from "@/hooks/use-action"
+import { toast } from "sonner"
 
 // Types
 type DevisStatus = "draft" | "sent" | "accepted" | "rejected" | "converted"
@@ -42,144 +44,132 @@ type DevisItem = {
     taxRate: number
 }
 
-type Devis = {
+type Client = {
     id: string
-    number: string
-    clientId: string
-    items: DevisItem[]
+    name: string
+    email: string
+    userId: string
     createdAt: Date
-    dueDate: Date
-    status: DevisStatus
-    discount: {
-        type: "percentage" | "fixed"
-        value: number
+    updatedAt: Date
+    address: string | null
+    phone: string | null
+    company: string | null
+}
+
+type Product = {
+    id: string
+    name: string
+    description: string
+    defaultPrice: number
+    defaultTaxRate: number
+    userId: string
+    createdAt: Date
+    updatedAt: Date
+}
+
+type EditDevisPageProps = {
+    quote: Quote & {
+        items?: DevisItem[]
+        number?: string
+        discount?: {
+            type: "percentage" | "fixed"
+            value: number
+        }
+        notes?: string
     }
-    notes: string
+    clients: Client[]
+    products: Product[]
 }
 
-// Données de démonstration
-const devisData: Devis = {
-    id: "1",
-    number: "Q-1021",
-    clientId: "client-1",
-    items: [
-        {
-            id: "item-1",
-            productId: "product-1",
-            name: "Développement site web",
-            description: "Création d'un site web responsive avec CMS",
-            quantity: 1,
-            unitPrice: 2500,
-            taxRate: 20,
-        },
-        {
-            id: "item-2",
-            productId: "product-2",
-            name: "Maintenance mensuelle",
-            description: "Maintenance technique et mises à jour de sécurité",
-            quantity: 12,
-            unitPrice: 150,
-            taxRate: 20,
-        },
-        {
-            id: "item-3",
-            productId: "product-3",
-            name: "Hébergement premium",
-            description: "Hébergement haute disponibilité avec sauvegarde quotidienne",
-            quantity: 1,
-            unitPrice: 350,
-            taxRate: 20,
-        },
-    ],
-    createdAt: new Date(2023, 5, 15),
-    dueDate: new Date(2023, 6, 15),
-    status: "sent",
-    discount: {
-        type: "percentage",
-        value: 10,
-    },
-    notes:
-        "Ce devis est valable 30 jours à compter de sa date d'émission. Le paiement est dû dans les 15 jours suivant l'acceptation du devis.",
-}
-
-// Données de démonstration pour les clients
-const clientsData = [
-    {
-        id: "client-1",
-        name: "Martin Dupont",
-        email: "martin.dupont@example.com",
-    },
-    {
-        id: "client-2",
-        name: "Sophie Martin",
-        email: "sophie.martin@example.com",
-    },
-    {
-        id: "client-3",
-        name: "Jean Petit",
-        email: "jean.petit@example.com",
-    },
-    {
-        id: "client-4",
-        name: "Marie Leroy",
-        email: "marie.leroy@example.com",
-    },
-]
-
-// Données de démonstration pour les produits/services
-const productsData = [
-    {
-        id: "product-1",
-        name: "Développement site web",
-        description: "Création d'un site web responsive avec CMS",
-        defaultPrice: 2500,
-        defaultTaxRate: 20,
-    },
-    {
-        id: "product-2",
-        name: "Maintenance mensuelle",
-        description: "Maintenance technique et mises à jour de sécurité",
-        defaultPrice: 150,
-        defaultTaxRate: 20,
-    },
-    {
-        id: "product-3",
-        name: "Hébergement premium",
-        description: "Hébergement haute disponibilité avec sauvegarde quotidienne",
-        defaultPrice: 350,
-        defaultTaxRate: 20,
-    },
-    {
-        id: "product-4",
-        name: "Conception graphique",
-        description: "Création de logo, charte graphique et éléments visuels",
-        defaultPrice: 800,
-        defaultTaxRate: 20,
-    },
-    {
-        id: "product-5",
-        name: "Formation",
-        description: "Formation à l'utilisation du CMS (par heure)",
-        defaultPrice: 75,
-        defaultTaxRate: 20,
-    },
-]
-
-export default function EditDevisPage({ quote }: { quote: Quote }) {
+export default function EditDevisPage({ quote, clients, products }: EditDevisPageProps) {
     const router = useRouter()
-    const [isLoading, setIsLoading] = useState(false)
     const [confirmCancel, setConfirmCancel] = useState(false)
     const [errors, setErrors] = useState<Record<string, string>>({})
 
-    // États du formulaire
-    const [clientId, setClientId] = useState(devisData.clientId)
-    const [createdAt, setCreatedAt] = useState(devisData.createdAt)
-    const [dueDate, setDueDate] = useState(devisData.dueDate)
-    const [status, setStatus] = useState<DevisStatus>(devisData.status)
-    const [items, setItems] = useState<DevisItem[]>(devisData.items)
-    const [discountType, setDiscountType] = useState<"percentage" | "fixed">(devisData.discount.type)
-    const [discountValue, setDiscountValue] = useState(devisData.discount.value)
-    const [notes, setNotes] = useState(devisData.notes)
+    // Vérification des items reçus
+    useEffect(() => {
+        console.log("Quote props:", quote);
+        console.log("Quote items:", quote.items);
+
+        // Vérifier si tous les items ont un nom
+        if (quote.items) {
+            quote.items.forEach((item, index) => {
+                if (!item.name) {
+                    console.warn(`Item ${index} (ID: ${item.id}) n'a pas de nom`);
+                }
+                console.log(`Item ${index}:`, {
+                    id: item.id,
+                    productId: item.productId,
+                    name: item.name,
+                    description: item.description
+                });
+            });
+        }
+
+        // Vérifier les produits disponibles
+        console.log("Available products:", products);
+    }, [quote, products]);
+
+    // Initialize states from quote prop
+    const [clientId, setClientId] = useState(quote.clientId || "")
+    const [createdAt, setCreatedAt] = useState(quote.createdAt)
+    const [dueDate, setDueDate] = useState(quote.validUntil || new Date())
+
+    // Prédéfinir le statut à "draft" (brouillon)
+    const [status, setStatus] = useState<DevisStatus>("draft")
+
+    // Initialize with a single item using the first product if available
+    const [items, setItems] = useState<DevisItem[]>(() => {
+        // Check if we already have items in the quote
+        if (quote.items && quote.items.length > 0) {
+            // Assurons-nous que chaque item a un nom valide
+            return quote.items.map(item => {
+                // Si l'item n'a pas de nom, essayons de le trouver dans les produits
+                if (!item.name && item.productId) {
+                    const matchingProduct = products.find(p => p.id === item.productId);
+                    if (matchingProduct) {
+                        return {
+                            ...item,
+                            name: matchingProduct.name
+                        };
+                    }
+                }
+                return item;
+            });
+        }
+
+        // Otherwise, create a single item with the first product if available
+        if (products.length > 0) {
+            const firstProduct = products[0];
+            return [{
+                id: `new-item-${Date.now()}`,
+                productId: firstProduct.id,
+                name: firstProduct.name,
+                description: firstProduct.description,
+                quantity: 1,
+                unitPrice: firstProduct.defaultPrice,
+                taxRate: firstProduct.defaultTaxRate,
+            }];
+        }
+
+        // Fallback to empty item if no products available
+        return [{
+            id: `new-item-${Date.now()}`,
+            productId: "",
+            name: "",
+            description: "",
+            quantity: 1,
+            unitPrice: 0,
+            taxRate: 20,
+        }];
+    });
+
+    // Initialize discount and notes
+    const [discountType, setDiscountType] = useState<"percentage" | "fixed">(
+        quote.discount?.type || "percentage"
+    )
+    const [discountValue, setDiscountValue] = useState(quote.discount?.value || 0)
+    const [notes, setNotes] = useState(quote.notes || "")
 
     // Fonction pour ajouter une nouvelle ligne
     const addItem = () => {
@@ -213,7 +203,7 @@ export default function EditDevisPage({ quote }: { quote: Quote }) {
 
     // Fonction pour mettre à jour la description, le prix et la TVA lorsqu'un produit est sélectionné
     const handleProductChange = (index: number, productId: string) => {
-        const product = productsData.find((p) => p.id === productId)
+        const product = products.find((p) => p.id === productId)
         if (product) {
             const newItems = [...items]
             newItems[index] = {
@@ -291,45 +281,47 @@ export default function EditDevisPage({ quote }: { quote: Quote }) {
         return Object.keys(newErrors).length === 0
     }
 
+    // Utilisation du hook useAction pour gérer l'action serveur updateQuote
+    const { execute: executeUpdateQuote, isLoading } = useAction(updateQuote, {
+        onSuccess: (data) => {
+            const message = data?.data?.data?.message || "Devis mis à jour avec succès";
+            if (data?.data?.success) {
+                toast.success(message);
+                router.push(`/dashboard/quotes/${quote.id}`);
+            } else {
+                toast.error(message);
+            }
+        },
+        onError: (error) => {
+            toast.error(error || "Une erreur est survenue");
+        }
+    });
+
     // Gérer la soumission du formulaire
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
+        e.preventDefault();
 
         if (!validateForm()) {
-            return
+            return;
         }
 
-        setIsLoading(true)
-        try {
-            // Simuler un délai de traitement
-            await new Promise((resolve) => setTimeout(resolve, 1000))
+        // Préparer les données du formulaire
+        const formData = {
+            id: quote.id,
+            clientId,
+            createdAt,
+            dueDate,
+            status,
+            items,
+            discount: discountValue > 0 ? {
+                type: discountType,
+                value: discountValue,
+            } : undefined,
+            notes,
+        };
 
-            // Construire l'objet de données à envoyer
-            const formData = {
-                clientId,
-                createdAt,
-                dueDate,
-                status,
-                items,
-                discount: {
-                    type: discountType,
-                    value: discountValue,
-                },
-                notes,
-            }
-
-            console.log("Formulaire soumis avec succès:", formData)
-
-            // Dans une vraie application, vous enverriez les données au serveur ici
-            // await updateDevis(params.id, formData)
-
-            // Rediriger vers la page de détail du devis
-            router.push(`/dashboard/quotes/${quote.id}`)
-        } catch (error) {
-            console.error("Erreur lors de la soumission du formulaire:", error)
-        } finally {
-            setIsLoading(false)
-        }
+        // Exécuter l'action serveur
+        executeUpdateQuote(formData);
     }
 
     return (
@@ -348,7 +340,7 @@ export default function EditDevisPage({ quote }: { quote: Quote }) {
 
                 {/* Titre de la page */}
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Modifier le devis #{quote.number}</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">Modifier le devis #{quote.number || quote.id}</h1>
                     <p className="text-muted-foreground mt-1">
                         Modifiez les informations du devis et enregistrez vos changements.
                     </p>
@@ -371,7 +363,7 @@ export default function EditDevisPage({ quote }: { quote: Quote }) {
                                             <SelectValue placeholder="Sélectionner un client" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {clientsData.map((client) => (
+                                            {clients.map((client) => (
                                                 <SelectItem key={client.id} value={client.id}>
                                                     {client.name} ({client.email})
                                                 </SelectItem>
@@ -504,7 +496,7 @@ export default function EditDevisPage({ quote }: { quote: Quote }) {
                                                                     <SelectValue placeholder="Sélectionner un produit" />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
-                                                                    {productsData.map((product) => (
+                                                                    {products.map((product) => (
                                                                         <SelectItem key={product.id} value={product.id}>
                                                                             {product.name}
                                                                         </SelectItem>
@@ -724,7 +716,7 @@ export default function EditDevisPage({ quote }: { quote: Quote }) {
                                         variant="destructive"
                                         onClick={() => {
                                             setConfirmCancel(false)
-                                            router.push(`/dashboard/quotes/${params.id}`)
+                                            router.push(`/dashboard/quotes/${quote.id}`)
                                         }}
                                     >
                                         Abandonner les modifications

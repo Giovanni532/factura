@@ -8,7 +8,8 @@ import {
     duplicateQuoteSchema,
     deleteQuoteSchema,
     downloadQuotePdfSchema,
-    convertQuoteToInvoiceSchema
+    convertQuoteToInvoiceSchema,
+    updateQuoteSchema
 } from "@/validations/quotes-schema";
 // Remove jsPDF imports as they'll be handled client-side or by a dedicated PDF service
 
@@ -222,6 +223,151 @@ export const getQuoteById = useMutation(
         } catch (error) {
             console.error("Error fetching quote:", error);
             return { quote: null };
+        }
+    }
+);
+
+// Server action to update a quote
+export const updateQuote = useMutation(
+    updateQuoteSchema,
+    async (input, { userId }) => {
+        try {
+            // First check if the quote exists and belongs to the user
+            const existingQuote = await prisma.quote.findUnique({
+                where: {
+                    id: input.id,
+                    userId: userId
+                },
+                include: {
+                    quoteItems: true // Include existing quote items
+                }
+            });
+
+            if (!existingQuote) {
+                return {
+                    success: false,
+                    data: {
+                        message: "Devis introuvable ou vous n'avez pas les droits pour le modifier"
+                    }
+                };
+            }
+
+            // Check if quote has been converted to invoice (can't edit if converted)
+            if (existingQuote.status === "CONVERTED") {
+                return {
+                    success: false,
+                    data: {
+                        message: "Ce devis a été converti en facture et ne peut plus être modifié"
+                    }
+                };
+            }
+
+            // Calculate total based on items
+            const total = input.items.reduce((sum, item) => {
+                const subtotal = item.quantity * item.unitPrice;
+                const tax = (subtotal * item.taxRate) / 100;
+                return sum + subtotal + tax;
+            }, 0);
+
+            // Apply discount if provided
+            let finalTotal = total;
+            if (input.discount) {
+                if (input.discount.type === "percentage") {
+                    finalTotal = total - (total * input.discount.value / 100);
+                } else {
+                    finalTotal = total - input.discount.value;
+                }
+            }
+
+            // Start transaction to update quote and items
+            return await prisma.$transaction(async (tx) => {
+                // Update the quote record
+                const updatedQuote = await tx.quote.update({
+                    where: { id: input.id },
+                    data: {
+                        clientId: input.clientId,
+                        status: input.status.toUpperCase() as any, // Convert to database enum format
+                        validUntil: input.dueDate,
+                        total: finalTotal,
+                        // We don't store notes directly in the Quote model, this would be handled separately in a real app
+                    }
+                });
+
+                // Get the map of existing quote items by ID for reference
+                const existingItemsMap = existingQuote.quoteItems.reduce((map, item) => {
+                    map[item.id] = item;
+                    return map;
+                }, {} as Record<string, any>);
+
+                // 1. Identify items to delete (items in DB but not in the input)
+                const inputItemIds = new Set(input.items.map(item => item.id));
+                const itemIdsToDelete = existingQuote.quoteItems
+                    .filter(item => !inputItemIds.has(item.id))
+                    .map(item => item.id);
+
+                // Delete items that are no longer in the input
+                if (itemIdsToDelete.length > 0) {
+                    await tx.quoteItem.deleteMany({
+                        where: {
+                            id: { in: itemIdsToDelete }
+                        }
+                    });
+                }
+
+                // 2. Process each item from the input
+                for (const item of input.items) {
+                    // Check if this is an existing item that we need to update
+                    if (existingItemsMap[item.id]) {
+                        // This is an existing item, update it
+                        await tx.quoteItem.update({
+                            where: { id: item.id },
+                            data: {
+                                quantity: item.quantity,
+                                unitPrice: item.unitPrice,
+                                // We don't update the itemId as that would change the product
+                            }
+                        });
+                    } else {
+                        // This is a new item, verify the product exists first
+                        const product = await tx.item.findUnique({
+                            where: {
+                                id: item.productId,
+                                userId // Ensure the product belongs to the user
+                            }
+                        });
+
+                        if (!product) {
+                            continue; // Skip this item if product doesn't exist
+                        }
+
+                        // Create the new quote item
+                        await tx.quoteItem.create({
+                            data: {
+                                quoteId: input.id,
+                                itemId: item.productId,
+                                quantity: item.quantity,
+                                unitPrice: item.unitPrice
+                            }
+                        });
+                    }
+                }
+
+                return {
+                    success: true,
+                    data: {
+                        message: "Devis mis à jour avec succès",
+                        quoteId: updatedQuote.id
+                    }
+                };
+            });
+        } catch (error) {
+            console.error("Error updating quote:", error);
+            return {
+                success: false,
+                data: {
+                    message: "Erreur lors de la mise à jour du devis"
+                }
+            };
         }
     }
 );
