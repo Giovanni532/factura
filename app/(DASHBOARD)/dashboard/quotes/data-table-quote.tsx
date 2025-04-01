@@ -578,4 +578,3 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
         </div>
     )
 }
-
