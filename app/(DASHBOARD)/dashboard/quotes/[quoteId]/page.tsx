@@ -25,6 +25,5 @@ export default async function QuotesPageDetail({ params }: { params: Promise<{ q
             </div>
         );
     }
-    console.log(response.data.quote)
     return <QuoteDetailPage quote={response.data.quote} />
 }

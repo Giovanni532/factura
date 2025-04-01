@@ -172,7 +172,7 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
             toast.success("Devis converti en facture avec succès");
             setConvertDialogOpen(false);
             if (data.invoiceId) {
-                router.push(`/dashboard/invoices/${data.invoiceId}`);
+                router.push(paths.dashboard.invoices.detail(data.invoiceId));
             } else {
                 router.refresh();
             }
