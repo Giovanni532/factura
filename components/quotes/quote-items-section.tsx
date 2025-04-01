@@ -147,7 +147,7 @@ export function QuoteItemsSection({ items, errors, onAdd, onUpdate, onRemove, pr
                           </TableCell>
                           <TableCell>
                             <Input
-                              value={itemDescriptions[item.id] || ""}
+                              value={item.description || ""}
                               onChange={(e) => updateItemDescription(index, e.target.value)}
                               placeholder="Description"
                             />
