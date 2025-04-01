@@ -1,8 +1,11 @@
 import React from 'react'
 import { getQuoteById } from '@/actions/quote'
 import QuoteDetailPage from './quote-detail';
+import { unstable_noStore } from 'next/cache';
 
 export default async function QuotesPageDetail({ params }: { params: Promise<{ quoteId: string }> }) {
+    // Désactiver la mise en cache pour cette page
+    unstable_noStore();
 
     const { quoteId } = await params;
 

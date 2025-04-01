@@ -181,10 +181,30 @@ export const getQuoteById = useMutation(
                 taxRate: 20 // Default tax rate, could be stored in the DB in a real implementation
             }));
 
-            // Create discount object if applicable
-            // In this example implementation, we'll assume no discount is applied
-            // A real implementation would use data from the database
-            const discount = undefined;
+            // Calculate subtotal and taxes
+            const subtotal = items.reduce((total, item) => total + item.quantity * item.unitPrice, 0);
+            const taxes = items.reduce((total, item) => total + (item.quantity * item.unitPrice * item.taxRate) / 100, 0);
+            const expectedTotal = subtotal + taxes;
+
+            // If the stored total is less than expected total, there's a discount
+            let discount = undefined;
+            if (quote.total < expectedTotal) {
+                const discountValue = expectedTotal - quote.total;
+                const discountPercentage = (discountValue / subtotal) * 100;
+
+                // If the discount seems close to a round percentage, use percentage type
+                if (Math.abs(Math.round(discountPercentage) - discountPercentage) < 0.1) {
+                    discount = {
+                        type: "percentage" as const,
+                        value: Math.round(discountPercentage)
+                    };
+                } else {
+                    discount = {
+                        type: "fixed" as const,
+                        value: discountValue
+                    };
+                }
+            }
 
             // Transform the database quote to the format expected by the frontend
             const formattedQuote: QuoteDetail = {
@@ -264,22 +284,31 @@ export const updateQuote = useMutation(
                 };
             }
 
-            // Calculate total based on items
-            const total = input.items.reduce((sum, item) => {
-                const subtotal = item.quantity * item.unitPrice;
-                const tax = (subtotal * item.taxRate) / 100;
-                return sum + subtotal + tax;
+            // Calculate exactly as in the client
+            // 1. Calculate subtotal (HT)
+            const subtotal = input.items.reduce((sum, item) => {
+                return sum + (item.quantity * item.unitPrice);
             }, 0);
 
-            // Apply discount if provided
-            let finalTotal = total;
+            // 2. Calculate taxes
+            const taxes = input.items.reduce((sum, item) => {
+                const itemSubtotal = item.quantity * item.unitPrice;
+                const tax = (itemSubtotal * item.taxRate) / 100;
+                return sum + tax;
+            }, 0);
+
+            // 3. Calculate discount
+            let discount = 0;
             if (input.discount) {
                 if (input.discount.type === "percentage") {
-                    finalTotal = total - (total * input.discount.value / 100);
+                    discount = (subtotal * input.discount.value) / 100;
                 } else {
-                    finalTotal = total - input.discount.value;
+                    discount = input.discount.value;
                 }
             }
+
+            // 4. Calculate final total: subtotal + taxes - discount
+            const finalTotal = subtotal + taxes - discount;
 
             // Start transaction to update quote and items
             return await prisma.$transaction(async (tx) => {

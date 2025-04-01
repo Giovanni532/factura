@@ -203,6 +203,11 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
         return quote.total || calculateSubtotal() + calculateTaxes() - calculateDiscount()
     }
 
+    // Remplacer par une fonction qui renvoie toujours le total du serveur
+    const getServerTotal = () => {
+        return quote.total;
+    }
+
     // Formater le montant en euros
     const formatAmount = (amount: number) => {
         return formatCurrency(amount)
@@ -215,7 +220,7 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
 
     // Gérer l'impression d'un devis avec une meilleure mise en page
     const handlePrintQuote = async () => {
-        const printService = new QuotePrintService(quote, formatAmount, calculateSubtotal, calculateTaxes, calculateDiscount, calculateTotal);
+        const printService = new QuotePrintService(quote, formatAmount, calculateSubtotal, calculateTaxes, calculateDiscount, getServerTotal);
         printService.print(contentRef.current);
     };
 
@@ -223,7 +228,7 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
     const handleDownloadPdf = async () => {
         toast.info("Génération du PDF en cours...");
         try {
-            const pdfGenerator = new QuotePdfGenerator(quote, formatAmount, calculateSubtotal, calculateTaxes, calculateDiscount, calculateTotal);
+            const pdfGenerator = new QuotePdfGenerator(quote, formatAmount, calculateSubtotal, calculateTaxes, calculateDiscount, getServerTotal);
             await pdfGenerator.generateAndDownload();
             toast.success("PDF généré avec succès");
         } catch (error) {
@@ -454,7 +459,7 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
                                         <span className="text-muted-foreground">TVA</span>
                                         <span>{formatAmount(calculateTaxes())}</span>
                                     </div>
-                                    {quote.discount && (
+                                    {quote.discount?.type && (
                                         <div className="flex justify-between">
                                             <span className="text-muted-foreground">
                                                 Remise
@@ -466,7 +471,7 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
                                     <Separator className="my-2" />
                                     <div className="flex justify-between font-medium text-lg">
                                         <span>Total TTC</span>
-                                        <span>{formatAmount(calculateTotal())}</span>
+                                        <span>{formatAmount(quote.total)}</span>
                                     </div>
                                 </div>
                             </div>
