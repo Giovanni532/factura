@@ -31,6 +31,7 @@ import { Quote } from "@prisma/client"
 import { updateQuote } from "@/actions/quote"
 import { useAction } from "@/hooks/use-action"
 import { toast } from "sonner"
+import { paths } from "@/paths"
 
 // Types
 type DevisStatus = "draft" | "sent" | "accepted" | "rejected" | "converted"
@@ -86,37 +87,12 @@ export default function EditDevisPage({ quote, clients, products }: EditDevisPag
     const [confirmCancel, setConfirmCancel] = useState(false)
     const [errors, setErrors] = useState<Record<string, string>>({})
 
-    // Vérification des items reçus
-    useEffect(() => {
-        console.log("Quote props:", quote);
-        console.log("Quote items:", quote.items);
-
-        // Vérifier si tous les items ont un nom
-        if (quote.items) {
-            quote.items.forEach((item, index) => {
-                if (!item.name) {
-                    console.warn(`Item ${index} (ID: ${item.id}) n'a pas de nom`);
-                }
-                console.log(`Item ${index}:`, {
-                    id: item.id,
-                    productId: item.productId,
-                    name: item.name,
-                    description: item.description
-                });
-            });
-        }
-
-        // Vérifier les produits disponibles
-        console.log("Available products:", products);
-    }, [quote, products]);
-
     // Initialize states from quote prop
     const [clientId, setClientId] = useState(quote.clientId || "")
     const [createdAt, setCreatedAt] = useState(quote.createdAt)
     const [dueDate, setDueDate] = useState(quote.validUntil || new Date())
 
-    // Prédéfinir le statut à "draft" (brouillon)
-    const [status, setStatus] = useState<DevisStatus>("draft")
+    const [status, setStatus] = useState<DevisStatus>(quote.status ? quote.status.toLowerCase() as DevisStatus : "draft")
 
     // Initialize with a single item using the first product if available
     const [items, setItems] = useState<DevisItem[]>(() => {
@@ -171,7 +147,6 @@ export default function EditDevisPage({ quote, clients, products }: EditDevisPag
     const [discountValue, setDiscountValue] = useState(quote.discount?.value || 0)
     const [notes, setNotes] = useState(quote.notes || "")
 
-    // Fonction pour ajouter une nouvelle ligne
     const addItem = () => {
         const newItem: DevisItem = {
             id: `new-item-${Date.now()}`,
@@ -287,7 +262,7 @@ export default function EditDevisPage({ quote, clients, products }: EditDevisPag
             const message = data?.data?.data?.message || "Devis mis à jour avec succès";
             if (data?.data?.success) {
                 toast.success(message);
-                router.push(`/dashboard/quotes/${quote.id}`);
+                router.push(paths.dashboard.quotes.detail(quote.id));
             } else {
                 toast.error(message);
             }
@@ -332,7 +307,7 @@ export default function EditDevisPage({ quote, clients, products }: EditDevisPag
                     variant="ghost"
                     size="sm"
                     className="w-fit"
-                    onClick={() => router.push(`/dashboard/quotes/${quote.id}`)}
+                    onClick={() => router.push(paths.dashboard.quotes.detail(quote.id))}
                 >
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Retour au devis
@@ -364,7 +339,7 @@ export default function EditDevisPage({ quote, clients, products }: EditDevisPag
                                         </SelectTrigger>
                                         <SelectContent>
                                             {clients.map((client) => (
-                                                <SelectItem key={client.id} value={client.id}>
+                                                <SelectItem className="cursor-pointer" key={client.id} value={client.id}>
                                                     {client.name} ({client.email})
                                                 </SelectItem>
                                             ))}
@@ -381,11 +356,11 @@ export default function EditDevisPage({ quote, clients, products }: EditDevisPag
                                             <SelectValue placeholder="Sélectionner un statut" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="draft">Brouillon</SelectItem>
-                                            <SelectItem value="sent">Envoyé</SelectItem>
-                                            <SelectItem value="accepted">Accepté</SelectItem>
-                                            <SelectItem value="rejected">Refusé</SelectItem>
-                                            <SelectItem value="converted">Converti en facture</SelectItem>
+                                            <SelectItem className="cursor-pointer" value="draft">Brouillon</SelectItem>
+                                            <SelectItem className="cursor-pointer" value="sent">Envoyé</SelectItem>
+                                            <SelectItem className="cursor-pointer" value="accepted">Accepté</SelectItem>
+                                            <SelectItem className="cursor-pointer" value="rejected">Refusé</SelectItem>
+                                            <SelectItem className="cursor-pointer" value="converted">Converti en facture</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -497,7 +472,7 @@ export default function EditDevisPage({ quote, clients, products }: EditDevisPag
                                                                 </SelectTrigger>
                                                                 <SelectContent>
                                                                     {products.map((product) => (
-                                                                        <SelectItem key={product.id} value={product.id}>
+                                                                        <SelectItem className="cursor-pointer" key={product.id} value={product.id}>
                                                                             {product.name}
                                                                         </SelectItem>
                                                                     ))}
@@ -658,8 +633,8 @@ export default function EditDevisPage({ quote, clients, products }: EditDevisPag
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="percentage">%</SelectItem>
-                                                <SelectItem value="fixed">€</SelectItem>
+                                                <SelectItem className="cursor-pointer" value="percentage">%</SelectItem>
+                                                <SelectItem className="cursor-pointer" value="fixed">€</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <div className="w-2/3 space-y-1">
@@ -716,7 +691,7 @@ export default function EditDevisPage({ quote, clients, products }: EditDevisPag
                                         variant="destructive"
                                         onClick={() => {
                                             setConfirmCancel(false)
-                                            router.push(`/dashboard/quotes/${quote.id}`)
+                                            router.push(paths.dashboard.quotes.detail(quote.id))
                                         }}
                                     >
                                         Abandonner les modifications
