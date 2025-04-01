@@ -318,15 +318,51 @@ export const updateQuote = useMutation(
                 for (const item of input.items) {
                     // Check if this is an existing item that we need to update
                     if (existingItemsMap[item.id]) {
-                        // This is an existing item, update it
-                        await tx.quoteItem.update({
-                            where: { id: item.id },
-                            data: {
-                                quantity: item.quantity,
-                                unitPrice: item.unitPrice,
-                                // We don't update the itemId as that would change the product
+                        // This is an existing item
+                        const existingItem = existingItemsMap[item.id];
+
+                        // Vérifier si le produit associé à cet item a changé
+                        const productHasChanged = existingItem.itemId !== item.productId;
+
+                        if (productHasChanged) {
+                            // Si le produit a changé, vérifier d'abord que le nouveau produit existe
+                            const newProduct = await tx.item.findUnique({
+                                where: {
+                                    id: item.productId,
+                                    userId
+                                }
+                            });
+
+                            if (!newProduct) {
+                                // Si le produit n'existe pas, continuer sans changer l'item
+                                await tx.quoteItem.update({
+                                    where: { id: item.id },
+                                    data: {
+                                        quantity: item.quantity,
+                                        unitPrice: item.unitPrice,
+                                    }
+                                });
+                            } else {
+                                // Si le produit existe, mettre à jour l'item avec le nouveau produit
+                                await tx.quoteItem.update({
+                                    where: { id: item.id },
+                                    data: {
+                                        itemId: item.productId, // Mettre à jour l'ID du produit
+                                        quantity: item.quantity,
+                                        unitPrice: item.unitPrice,
+                                    }
+                                });
                             }
-                        });
+                        } else {
+                            // Si le produit n'a pas changé, mettre à jour seulement les quantités et prix
+                            await tx.quoteItem.update({
+                                where: { id: item.id },
+                                data: {
+                                    quantity: item.quantity,
+                                    unitPrice: item.unitPrice,
+                                }
+                            });
+                        }
                     } else {
                         // This is a new item, verify the product exists first
                         const product = await tx.item.findUnique({
