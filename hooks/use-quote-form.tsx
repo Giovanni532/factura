@@ -152,6 +152,14 @@ export function useQuoteForm() {
         return Object.keys(newErrors).length === 0
     }
 
+    // Ajouter les descriptions au formState avant la soumission
+    const getFormData = () => {
+        return {
+            ...formState,
+            itemDescriptions
+        };
+    };
+
     // Nouvelle fonction pour mettre à jour la description
     const updateItemDescription = (index: number, description: string) => {
         const itemId = formState.quoteItems[index].id;
@@ -162,7 +170,7 @@ export function useQuoteForm() {
     };
 
     return {
-        formState,
+        formState: getFormData(),
         errors,
         updateGeneralInfo,
         addQuoteItem,

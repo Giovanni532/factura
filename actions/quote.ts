@@ -231,7 +231,7 @@ export const getQuoteById = useMutation(
                         country: bizCountry
                     },
                     logo: business?.logoUrl || undefined,
-                    taxId: business?.taxId || undefined
+                    taxId: business?.taxId || ""
                 },
                 items: items,
                 createdAt: quote.createdAt,
@@ -578,16 +578,42 @@ export const createQuote = useMutation(
                 };
             }
 
+            // Calcul du total si des items sont fournis
+            let total = 0;
+            if (input.quoteItems && input.quoteItems.length > 0) {
+                total = input.quoteItems.reduce((sum, item) => {
+                    return sum + (item.quantity * item.unitPrice);
+                }, 0);
+            }
+
             // 2. Create the quote
             const quote = await prisma.quote.create({
                 data: {
                     userId: userId,
                     clientId: input.clientId,
-                    status: "DRAFT", // Start as draft by default
-                    total: 0, // Will be updated when items are added
-                    validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Valid for 30 days by default
+                    status: (input.status || "DRAFT") as QuoteStatus,
+                    total: total,
+                    validUntil: input.validUntil || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Valid for 30 days by default
                 }
             });
+
+            // 3. Create quote items if provided
+            if (input.quoteItems && input.quoteItems.length > 0) {
+                // Préparer les données pour createMany
+                const quoteItemsData = input.quoteItems.map(item => ({
+                    quoteId: quote.id,
+                    itemId: item.itemId,
+                    quantity: item.quantity,
+                    unitPrice: item.unitPrice,
+                    // Nous pourrions stocker la description temporaire ici si nécessaire
+                    // description: item.description,
+                }));
+
+                // Insérer tous les items en une seule opération
+                await prisma.quoteItem.createMany({
+                    data: quoteItemsData
+                });
+            }
 
             return {
                 success: true,
@@ -598,7 +624,7 @@ export const createQuote = useMutation(
             console.error("Error creating quote:", error);
             return {
                 success: false,
-                message: "Erreur lors de la création du devis"
+                message: "Erreur lors de la création du devis: " + (error instanceof Error ? error.message : String(error))
             };
         }
     }

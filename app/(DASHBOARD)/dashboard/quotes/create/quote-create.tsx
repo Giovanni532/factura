@@ -25,7 +25,7 @@ export default function QuoteCreateFormPage({ clients, products }: { clients: Cl
     const router = useRouter()
 
     // Utiliser le hook useAction pour connecter à la server action
-    const { execute: executeCreateQuote, isLoading: isSubmitting } = useAction<{ clientId: string }, any>(createQuote as any, {
+    const { execute: executeCreateQuote, isLoading: isSubmitting } = useAction<{ clientId: string, status: string, validUntil: string, quoteItems: any[] }, any>(createQuote as any, {
         onSuccess: ({ data }) => {
             // Récupérer les données de façon sécurisée
             const success = data?.success || false;
@@ -64,11 +64,22 @@ export default function QuoteCreateFormPage({ clients, products }: { clients: Cl
 
     // Fonction pour gérer la soumission du formulaire
     const handleSubmit = async (formData: any) => {
-        // Envoyer uniquement les données nécessaires à la server action
+        // Préparer les items du devis avec leurs descriptions
+        const quoteItems = formData.quoteItems.map((item: any, index: number) => ({
+            id: item.id,
+            itemId: item.itemId,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            // Inclure la description si disponible
+            description: formData.itemDescriptions?.[item.id] || ""
+        }));
+
+        // Envoyer les données complètes à la server action
         executeCreateQuote({
-            clientId: formData.clientId
-            // Note: Le schéma actuel n'accepte que le clientId, mais on pourrait l'étendre
-            // pour inclure d'autres champs comme validUntil, status, etc.
+            clientId: formData.clientId,
+            status: formData.status,
+            validUntil: formData.validUntil,
+            quoteItems: quoteItems
         });
     }
 

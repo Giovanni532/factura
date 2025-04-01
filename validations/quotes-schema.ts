@@ -4,6 +4,17 @@ export const getUserQuotesSchema = z.object({});
 
 export const createQuoteSchema = z.object({
     clientId: z.string(),
+    status: z.string().optional(),
+    validUntil: z.date().optional(),
+    quoteItems: z.array(
+        z.object({
+            id: z.string(),
+            itemId: z.string(),
+            quantity: z.number().positive(),
+            unitPrice: z.number().min(0),
+            description: z.string().optional(),
+        })
+    ).optional(),
 });
 
 // Schema for getting a quote by ID
