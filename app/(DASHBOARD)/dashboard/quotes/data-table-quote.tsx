@@ -431,7 +431,7 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
                                                                     <Eye className="mr-2 h-4 w-4" />
                                                                     Voir
                                                                 </DropdownMenuItem>
-                                                                <DropdownMenuItem className="cursor-pointer" onClick={() => router.push(paths.dashboard.quotes.edit(devis.id))}>
+                                                                <DropdownMenuItem disabled={devis.status === "CONVERTED"} className="cursor-pointer" onClick={() => router.push(paths.dashboard.quotes.edit(devis.id))}>
                                                                     <Edit className="mr-2 h-4 w-4" />
                                                                     Modifier
                                                                 </DropdownMenuItem>
