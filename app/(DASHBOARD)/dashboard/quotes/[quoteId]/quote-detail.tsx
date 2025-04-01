@@ -174,7 +174,6 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
             if (data.invoiceId) {
                 router.push(`/dashboard/invoices/${data.invoiceId}`);
             } else {
-                // Just refresh the page to show the updated status
                 router.refresh();
             }
         },
@@ -200,7 +199,8 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
     }
 
     const calculateTotal = () => {
-        return calculateSubtotal() + calculateTaxes() - calculateDiscount()
+        // Use the server-provided total if available, otherwise calculate it client-side
+        return quote.total || calculateSubtotal() + calculateTaxes() - calculateDiscount()
     }
 
     // Formater le montant en euros

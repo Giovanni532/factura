@@ -75,6 +75,7 @@ export interface QuoteDetail {
         value: number;
     };
     notes?: string;
+    total: number;
 }
 
 // Server action to get all quotes for the currently authenticated user
@@ -209,14 +210,15 @@ export const getQuoteById = useMutation(
                         country: bizCountry
                     },
                     logo: business?.logoUrl || undefined,
-                    taxId: "FR 76 123 456 789" // Example tax ID, could be stored in business model
+                    taxId: business?.taxId || undefined
                 },
                 items: items,
                 createdAt: quote.createdAt,
                 dueDate: quote.validUntil || new Date(),
                 status: mapStatus(quote.status),
                 discount: discount,
-                notes: "Ce devis est valable 30 jours à compter de sa date d'émission. Le paiement est dû dans les 15 jours suivant l'acceptation du devis." // Example note
+                notes: quote.note || undefined,
+                total: quote.total
             };
 
             return { quote: formattedQuote };
@@ -289,9 +291,32 @@ export const updateQuote = useMutation(
                         status: input.status.toUpperCase() as any, // Convert to database enum format
                         validUntil: input.dueDate,
                         total: finalTotal,
-                        // We don't store notes directly in the Quote model, this would be handled separately in a real app
+                        note: input.notes || "",
                     }
                 });
+
+                // Si nous voulions enregistrer la remise de manière persistante, nous pourrions créer une table spécifique
+                // pour stocker les informations de remise. Pour l'instant, elle est incluse dans le calcul du total.
+
+                // Exemple de ce que nous pourrions faire si nous avions une table Discount:
+                // if (input.discount) {
+                //    await tx.discount.upsert({
+                //        where: { quoteId: input.id },
+                //        update: {
+                //            type: input.discount.type,
+                //            value: input.discount.value,
+                //        },
+                //        create: {
+                //            quoteId: input.id,
+                //            type: input.discount.type,
+                //            value: input.discount.value,
+                //        }
+                //    });
+                // } else {
+                //    await tx.discount.deleteMany({
+                //        where: { quoteId: input.id }
+                //    });
+                // }
 
                 // Get the map of existing quote items by ID for reference
                 const existingItemsMap = existingQuote.quoteItems.reduce((map, item) => {
