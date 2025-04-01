@@ -9,14 +9,17 @@ import { GeneralInfoSection } from "./general-info-section"
 import { QuoteItemsSection } from "./quote-items-section"
 import { QuoteSummarySection } from "./quote-summary-section"
 import { useQuoteForm } from "@/hooks/use-quote-form"
+import { Client, Item } from "@prisma/client"
 
 interface QuoteFormProps {
   onSubmit: (data: any) => void
   onCancel: () => void
   isSubmitting: boolean
+  clients: Client[]
+  products: Item[]
 }
 
-export function QuoteForm({ onSubmit, onCancel, isSubmitting }: QuoteFormProps) {
+export function QuoteForm({ onSubmit, onCancel, isSubmitting, clients, products }: QuoteFormProps) {
   const {
     formState,
     errors,
@@ -26,6 +29,8 @@ export function QuoteForm({ onSubmit, onCancel, isSubmitting }: QuoteFormProps) 
     removeQuoteItem,
     validateForm,
     calculateTotal,
+    itemDescriptions,
+    updateItemDescription,
   } = useQuoteForm()
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -54,7 +59,7 @@ export function QuoteForm({ onSubmit, onCancel, isSubmitting }: QuoteFormProps) 
     <motion.form onSubmit={handleSubmit} variants={formVariants}>
       <div className="space-y-8">
         {/* Section des informations générales */}
-        <GeneralInfoSection formState={formState} errors={errors} onChange={updateGeneralInfo} />
+        <GeneralInfoSection formState={formState} errors={errors} onChange={updateGeneralInfo} clients={clients} />
 
         {/* Section des lignes de devis */}
         <QuoteItemsSection
@@ -63,6 +68,9 @@ export function QuoteForm({ onSubmit, onCancel, isSubmitting }: QuoteFormProps) 
           onAdd={addQuoteItem}
           onUpdate={updateQuoteItem}
           onRemove={removeQuoteItem}
+          products={products}
+          itemDescriptions={itemDescriptions}
+          updateItemDescription={updateItemDescription}
         />
 
         {/* Section du résumé */}

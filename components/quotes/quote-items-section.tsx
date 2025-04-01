@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { QuoteItem } from "@prisma/client"
+import { Item, QuoteItem } from "@prisma/client"
 
 interface QuoteItemsSectionProps {
   items: QuoteItem[]
@@ -18,14 +18,12 @@ interface QuoteItemsSectionProps {
   onAdd: () => void
   onUpdate: (index: number, field: string, value: any) => void
   onRemove: (index: number) => void
+  products: Item[]
+  itemDescriptions: Record<string, string>
+  updateItemDescription: (index: number, description: string) => void
 }
 
-const products = [
-  { id: "1", name: "Produit 1", description: "Description du produit 1", price: 100 },
-  { id: "2", name: "Produit 2", description: "Description du produit 2", price: 200 },
-]
-
-export function QuoteItemsSection({ items, errors, onAdd, onUpdate, onRemove }: QuoteItemsSectionProps) {
+export function QuoteItemsSection({ items, errors, onAdd, onUpdate, onRemove, products, itemDescriptions, updateItemDescription }: QuoteItemsSectionProps) {
   // Fonction pour formater le prix
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("fr-FR", {
@@ -75,7 +73,7 @@ export function QuoteItemsSection({ items, errors, onAdd, onUpdate, onRemove }: 
     if (product) {
       onUpdate(index, "itemId", productId)
       onUpdate(index, "description", product.description)
-      onUpdate(index, "unitPrice", product.price)
+      onUpdate(index, "unitPrice", product.unitPrice)
     }
   }
 
@@ -119,7 +117,7 @@ export function QuoteItemsSection({ items, errors, onAdd, onUpdate, onRemove }: 
                     ) : (
                       items.map((item, index) => (
                         <motion.tr
-                          key={item.id}
+                          key={item.id || `item_${index}`}
                           variants={rowVariants}
                           initial="hidden"
                           animate="visible"
@@ -149,8 +147,8 @@ export function QuoteItemsSection({ items, errors, onAdd, onUpdate, onRemove }: 
                           </TableCell>
                           <TableCell>
                             <Input
-                              value={item.description || ""}
-                              onChange={(e) => onUpdate(index, "description", e.target.value)}
+                              value={itemDescriptions[item.id] || ""}
+                              onChange={(e) => updateItemDescription(index, e.target.value)}
                               placeholder="Description"
                             />
                           </TableCell>

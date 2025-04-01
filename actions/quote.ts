@@ -9,7 +9,8 @@ import {
     deleteQuoteSchema,
     downloadQuotePdfSchema,
     convertQuoteToInvoiceSchema,
-    updateQuoteSchema
+    updateQuoteSchema,
+    createQuoteSchema
 } from "@/validations/quotes-schema";
 // Remove jsPDF imports as they'll be handled client-side or by a dedicated PDF service
 
@@ -553,6 +554,52 @@ export const deleteQuote = useMutation(
         } catch (error) {
             console.error("Error deleting quote:", error);
             return { success: false, message: "Erreur lors de la suppression du devis" };
+        }
+    }
+);
+
+// Server action to create a quote
+export const createQuote = useMutation(
+    createQuoteSchema,
+    async (input, { userId }) => {
+        try {
+            // 1. Verify that the client exists and belongs to the user
+            const client = await prisma.client.findUnique({
+                where: {
+                    id: input.clientId,
+                    userId: userId
+                }
+            });
+
+            if (!client) {
+                return {
+                    success: false,
+                    message: "Client introuvable ou vous n'avez pas les droits pour créer un devis pour ce client"
+                };
+            }
+
+            // 2. Create the quote
+            const quote = await prisma.quote.create({
+                data: {
+                    userId: userId,
+                    clientId: input.clientId,
+                    status: "DRAFT", // Start as draft by default
+                    total: 0, // Will be updated when items are added
+                    validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Valid for 30 days by default
+                }
+            });
+
+            return {
+                success: true,
+                message: "Devis créé avec succès",
+                quoteId: quote.id
+            };
+        } catch (error) {
+            console.error("Error creating quote:", error);
+            return {
+                success: false,
+                message: "Erreur lors de la création du devis"
+            };
         }
     }
 );

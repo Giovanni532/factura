@@ -11,7 +11,7 @@ export function useQuoteForm() {
         validUntil: null as Date | null,
         quoteItems: [
             {
-                id: "",
+                id: `temp_${Date.now()}`,
                 quoteId: "",
                 itemId: "",
                 quantity: 1,
@@ -22,6 +22,9 @@ export function useQuoteForm() {
 
     // État des erreurs
     const [errors, setErrors] = useState<Record<string, string>>({})
+
+    // État des descriptions des items
+    const [itemDescriptions, setItemDescriptions] = useState<Record<string, string>>({})
 
     // Mettre à jour les informations générales
     const updateGeneralInfo = (field: string, value: any) => {
@@ -42,13 +45,16 @@ export function useQuoteForm() {
 
     // Ajouter une ligne de devis
     const addQuoteItem = () => {
+        // Générer un ID unique temporaire avec timestamp + random pour éviter les doublons
+        const newId = `temp_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+
         setFormState((prev) => ({
             ...prev,
             quoteItems: [
                 ...prev.quoteItems,
                 {
                     quoteId: "",
-                    id: "",
+                    id: newId, // ID unique garanti
                     itemId: "",
                     quantity: 1,
                     unitPrice: 0,
@@ -146,6 +152,15 @@ export function useQuoteForm() {
         return Object.keys(newErrors).length === 0
     }
 
+    // Nouvelle fonction pour mettre à jour la description
+    const updateItemDescription = (index: number, description: string) => {
+        const itemId = formState.quoteItems[index].id;
+        setItemDescriptions(prev => ({
+            ...prev,
+            [itemId]: description
+        }));
+    };
+
     return {
         formState,
         errors,
@@ -155,6 +170,8 @@ export function useQuoteForm() {
         removeQuoteItem,
         validateForm,
         calculateTotal,
+        itemDescriptions,
+        updateItemDescription,
     }
 }
 

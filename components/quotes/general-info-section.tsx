@@ -15,18 +15,14 @@ import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { Client } from "@prisma/client"
 
-const clients: Client[] = [
-  { id: "1", name: "John Doe", email: "john.doe@example.com", phone: "1234567890", address: "123 Main St, Anytown, USA" },
-  { id: "2", name: "Jane Smith", email: "jane.smith@example.com", phone: "0987654321", address: "456 Maple Ave, Anycity, USA" },
-]
-
 interface GeneralInfoSectionProps {
   formState: any
   errors: Record<string, string>
   onChange: (field: string, value: any) => void
+  clients: Client[]
 }
 
-export function GeneralInfoSection({ formState, errors, onChange }: GeneralInfoSectionProps) {
+export function GeneralInfoSection({ formState, errors, onChange, clients }: GeneralInfoSectionProps) {
   const [date, setDate] = useState<Date | undefined>(formState.validUntil ? new Date(formState.validUntil) : undefined)
 
   const handleDateChange = (date: Date | undefined) => {
