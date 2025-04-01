@@ -2,11 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { useMutation } from "@/lib/safe-action";
-import { z } from "zod";
-
-const getProductsByUserIdSchema = z.object({
-    userId: z.string(),
-});
+import { getProductsByUserIdSchema } from "@/validations/produits";
 
 export const getProductsByUserId = useMutation(
     getProductsByUserIdSchema,
