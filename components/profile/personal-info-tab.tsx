@@ -28,7 +28,7 @@ export function PersonalInfoTab({ userData, errors, updateUserField, onPasswordC
   const firstInitial = userData.firstName?.charAt(0) || ''
   const lastInitial = userData.lastName?.charAt(0) || ''
   const initials = `${firstInitial}${lastInitial}`
-  const { user, setUser } = useAuthStore()
+  const { setUser } = useAuthStore()
 
   const [isUpdating, setIsUpdating] = useState(false)
 
