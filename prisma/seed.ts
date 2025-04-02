@@ -89,6 +89,16 @@ async function main() {
             })
         ]);
 
+        // Create subscription
+        await prisma.subscription.create({
+            data: {
+                userId: user.id,
+                plan: 'FREE',
+                status: 'ACTIVE',
+                currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            }
+        });
+
         // Create quotes and invoices for each client
         for (const client of clients) {
             // Create quotes

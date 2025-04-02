@@ -1,32 +1,32 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Save, Check } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
-
 import { containerVariants, fadeInVariants } from "@/app/(DASHBOARD)/dashboard/[userId]/profile/animations"
-import { type UserProfile, initialUserData } from "@/app/(DASHBOARD)/dashboard/[userId]/profile/type"
 import { PersonalInfoTab } from "@/components/profile/personal-info-tab"
 import { CompanyInfoTab } from "@/components/profile/company-info-tab"
 import { PasswordDialog } from "@/components/profile/password-dialog"
+import { UserProfile } from "@/lib/utils"
 
-export default function ProfilePageClient() {
+export default function ProfilePageClient({ user }: { user: UserProfile }) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [showPasswordDialog, setShowPasswordDialog] = useState(false)
-  const [userData, setUserData] = useState<UserProfile>(initialUserData)
+
+  const [userData, setUserData] = useState<UserProfile>(user)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [activeTab, setActiveTab] = useState("personal")
   const [saveSuccess, setSaveSuccess] = useState(false)
 
-  // Fonction pour mettre à jour les champs utilisateur
+  useEffect(() => {
+    setUserData(user)
+  }, [user])
+
   const updateUserField = (field: keyof UserProfile, value: any) => {
     setUserData((prev) => ({
       ...prev,
@@ -34,105 +34,16 @@ export default function ProfilePageClient() {
     }))
   }
 
-  // Fonction pour mettre à jour les champs de l'entreprise
-  const updateCompanyField = (field: keyof UserProfile["company"], value: any) => {
+  const updateCompanyField = (field: keyof UserProfile["business"], value: any) => {
     setUserData((prev) => ({
       ...prev,
-      company: {
-        ...prev.company,
+      business: {
+        ...prev.business,
         [field]: value,
       },
     }))
   }
 
-  // Fonction pour mettre à jour les champs d'adresse
-  const updateAddressField = (field: keyof UserProfile["company"]["address"], value: string) => {
-    setUserData((prev) => ({
-      ...prev,
-      company: {
-        ...prev.company,
-        address: {
-          ...prev.company.address,
-          [field]: value,
-        },
-      },
-    }))
-  }
-
-  // Validation du formulaire principal
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {}
-
-    if (!userData.firstName.trim()) {
-      newErrors.firstName = "Le prénom est requis"
-    }
-
-    if (!userData.lastName.trim()) {
-      newErrors.lastName = "Le nom est requis"
-    }
-
-    if (!userData.email.trim()) {
-      newErrors.email = "L'email est requis"
-    } else if (!/\S+@\S+\.\S+/.test(userData.email)) {
-      newErrors.email = "L'email n'est pas valide"
-    }
-
-    if (!userData.company.name.trim()) {
-      newErrors.companyName = "Le nom de l'entreprise est requis"
-    }
-
-    if (!userData.company.address.street.trim()) {
-      newErrors.street = "L'adresse est requise"
-    }
-
-    if (!userData.company.address.city.trim()) {
-      newErrors.city = "La ville est requise"
-    }
-
-    if (!userData.company.address.postalCode.trim()) {
-      newErrors.postalCode = "Le code postal est requis"
-    }
-
-    if (!userData.company.address.country.trim()) {
-      newErrors.country = "Le pays est requis"
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  // Gérer la soumission du formulaire principal
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!validateForm()) {
-      return
-    }
-
-    setIsLoading(true)
-    try {
-      // Simuler un délai de traitement
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Dans une vraie application, vous enverriez les données au serveur ici
-      console.log("Profil mis à jour:", userData)
-
-      // Afficher l'animation de succès
-      setSaveSuccess(true)
-      setTimeout(() => setSaveSuccess(false), 2000)
-
-      toast.success("Profil mis à jour", {
-        description: "Vos informations ont été enregistrées avec succès.",
-      })
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour du profil:", error)
-      toast.error("Une erreur est survenue lors de la mise à jour du profil.", {
-        description: "Veuillez réessayer plus tard.",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   return (
     <motion.div
@@ -170,14 +81,14 @@ export default function ProfilePageClient() {
                 <span className="mr-2">👤</span>
                 Personnel
               </TabsTrigger>
-              <TabsTrigger value="company" className="flex items-center">
+              <TabsTrigger value="business" className="flex items-center">
                 <span className="mr-2">🏢</span>
                 Entreprise
               </TabsTrigger>
             </TabsList>
           </motion.div>
 
-          <form onSubmit={handleSubmit}>
+          <div>
             {/* Onglets avec AnimatePresence pour les transitions */}
             <AnimatePresence mode="wait">
               {activeTab === "personal" && (
@@ -191,53 +102,17 @@ export default function ProfilePageClient() {
                 </TabsContent>
               )}
 
-              {activeTab === "company" && (
-                <TabsContent value="company" className="space-y-6">
+              {activeTab === "business" && (
+                <TabsContent value="business" className="space-y-6">
                   <CompanyInfoTab
                     userData={userData}
                     errors={errors}
                     updateCompanyField={updateCompanyField}
-                    updateAddressField={updateAddressField}
                   />
                 </TabsContent>
               )}
             </AnimatePresence>
-
-            {/* Boutons d'action */}
-            <motion.div className="flex justify-between mt-8" variants={fadeInVariants}>
-              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                <Button type="submit" disabled={isLoading} className="relative overflow-hidden">
-                  {saveSuccess ? (
-                    <motion.span
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      className="flex items-center"
-                    >
-                      <Check className="mr-2 h-4 w-4" />
-                      Enregistré !
-                    </motion.span>
-                  ) : isLoading ? (
-                    <span>Enregistrement...</span>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      Enregistrer les modifications
-                    </>
-                  )}
-
-                  {saveSuccess && (
-                    <motion.span
-                      className="absolute inset-0 bg-success opacity-20"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: [0, 1.5], opacity: [0.5, 0] }}
-                      transition={{ duration: 1 }}
-                    />
-                  )}
-                </Button>
-              </motion.div>
-            </motion.div>
-          </form>
+          </div>
         </Tabs>
       </div>
 

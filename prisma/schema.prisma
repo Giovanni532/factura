@@ -19,11 +19,11 @@ enum Role {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
+  id            String        @id @default(uuid())
+  email         String        @unique
   name          String?
-  createdAt     DateTime       @default(now())
-  role          Role           @default(USER)
+  createdAt     DateTime      @default(now())
+  role          Role          @default(USER)
   emailVerified Boolean
   image         String?
   updatedAt     DateTime
@@ -35,7 +35,7 @@ model User {
   quotes        Quote[]
   invoices      Invoice[]
   payments      Payment[]
-  subscriptions Subscription[]
+  subscriptions Subscription?
 
   @@map("users")
 }
@@ -86,15 +86,18 @@ model Verification {
 }
 
 model Business {
-  id        String   @id @default(cuid())
-  name      String
-  address   String?
-  logoUrl   String?
-  taxId     String?
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  name       String
+  address    String?
+  city       String?
+  postalCode String?
+  country    String?
+  logoUrl    String?
+  taxId      String?
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String   @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model Client {
@@ -194,8 +197,8 @@ model Subscription {
   id               String   @id @default(cuid())
   user             User     @relation(fields: [userId], references: [id])
   userId           String   @unique
-  plan             String // e.g., "free", "pro", "enterprise"
-  status           String // e.g., "active", "canceled"
+  plan             String   @default("free")
+  status           String   @default("active")
   currentPeriodEnd DateTime
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt

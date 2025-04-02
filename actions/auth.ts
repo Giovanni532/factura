@@ -13,5 +13,38 @@ export async function getUser() {
             id: session?.user?.id,
         },
     })
-    return user
+
+    const userProfile = {
+        id: user?.id,
+        firstName: user?.name?.split(' ')[0],
+        lastName: user?.name?.split(' ')[1],
+        email: user?.email,
+        avatar: user?.image,
+    }
+
+    const business = await prisma.business.findUnique({
+        where: {
+            userId: session?.user?.id,
+        },
+    })
+
+    const subscription = await prisma.subscription.findUnique({
+        where: {
+            userId: session?.user?.id,
+        },
+        select: {
+            id: true,
+            status: true,
+            currentPeriodEnd: true,
+            plan: true,
+        }
+    });
+
+    const userData = {
+        ...userProfile,
+        business: business,
+        subscription: subscription,
+    }
+
+    return userData
 }

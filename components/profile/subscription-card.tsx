@@ -9,19 +9,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { cardVariants, itemVariants } from "@/app/(DASHBOARD)/dashboard/[userId]/profile/animations"
-import { type SubscriptionPlan, getSubscriptionBadgeVariant, getSubscriptionPlanLabel } from "@/app/(DASHBOARD)/dashboard/[userId]/profile/type"
+import { SubscriptionPlan, getSubscriptionBadgeVariant, getSubscriptionPlanLabel } from "@/lib/utils"
 import { paths } from "@/paths"
 import { useAuthStore } from "@/store/auth-store"
 
 interface SubscriptionCardProps {
-  plan: SubscriptionPlan
-  status: "active" | "trialing" | "canceled" | "expired"
-  renewDate: string
+  plan?: SubscriptionPlan
+  status?: "active" | "trialing" | "canceled" | "expired"
+  renewDate?: string
 }
 
-export function SubscriptionCard({ plan, status, renewDate }: SubscriptionCardProps) {
+export function SubscriptionCard({
+  plan = "free",
+  status = "active",
+  renewDate = new Date().toISOString().split('T')[0]
+}: SubscriptionCardProps) {
   const router = useRouter()
   const user = useAuthStore((state) => state.user)
+
   return (
     <motion.div variants={cardVariants}>
       <Card>
