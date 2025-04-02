@@ -30,7 +30,7 @@ export const updatePersonalInfo = useMutation(
             },
         })
 
-        revalidatePath(`/`)
+        revalidatePath(`/dashboard/${userId}/profile`)
 
         return {
             success: true,

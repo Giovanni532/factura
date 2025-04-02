@@ -15,6 +15,7 @@ import { SubscriptionCard } from "@/components/profile/subscription-card"
 import { UserProfile } from "@/lib/utils"
 import { updatePersonalInfo } from "@/actions/user"
 import { useAction } from "@/hooks/use-action"
+import { useAuthStore } from "@/store/auth-store"
 
 interface PersonalInfoTabProps {
   userData: UserProfile
@@ -27,6 +28,7 @@ export function PersonalInfoTab({ userData, errors, updateUserField, onPasswordC
   const firstInitial = userData.firstName?.charAt(0) || ''
   const lastInitial = userData.lastName?.charAt(0) || ''
   const initials = `${firstInitial}${lastInitial}`
+  const { user, setUser } = useAuthStore()
 
   const [isUpdating, setIsUpdating] = useState(false)
 
@@ -43,6 +45,7 @@ export function PersonalInfoTab({ userData, errors, updateUserField, onPasswordC
   const { execute: executePersonalUpdate, isLoading } = useAction(updatePersonalInfo, {
     onSuccess: (result) => {
       if (result?.data?.success) {
+        setUser(result.data.user)
         toast.success("Informations personnelles mises à jour !", {
           description: "Vos modifications ont été enregistrées avec succès.",
         })
