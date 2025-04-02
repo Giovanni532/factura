@@ -2,6 +2,12 @@ import { getClientsByUserId } from "@/actions/client"
 import QuoteCreatePage from "./quote-create"
 import { getUser } from "@/actions/auth"
 import { getProductsByUserId } from "@/actions/produit"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+    title: "Créer un devis | Factura",
+    description: "Créer un devis",
+}
 
 export default async function CreateQuotePage() {
     const user = await getUser()
@@ -10,6 +16,5 @@ export default async function CreateQuotePage() {
     const dataProducts = await getProductsByUserId({ userId: user?.id ?? "" })
     const products = dataProducts?.data?.data.items ?? []
 
-    console.log(clients)
     return <QuoteCreatePage clients={clients} products={products} />
 }
