@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { CreditCardIcon, LogOutIcon, MoreVerticalIcon, UserCircleIcon, BarcodeIcon } from "lucide-react"
+import { LogOutIcon, MoreVerticalIcon, UserCircleIcon, BarcodeIcon } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {

@@ -33,7 +33,7 @@ export function PasswordDialog({ open, onOpenChange }: PasswordDialogProps) {
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Utilisation du hook useAction pour la mise à jour du mot de passe
-  const { execute: executePasswordUpdate, isLoading, error } = useAction(updatePassword, {
+  const { execute: executePasswordUpdate, isLoading } = useAction(updatePassword, {
     onSuccess: (data) => {
       if (data?.data?.success) {
         // Réinitialiser les champs

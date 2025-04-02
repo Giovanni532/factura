@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { EyeIcon, EyeOffIcon, ArrowRightIcon, CheckCircleIcon } from "lucide-react"
+import { EyeIcon, EyeOffIcon, ArrowRightIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { paths } from "@/paths"
 import { useAuthStore } from "@/store/auth-store"
@@ -101,7 +101,7 @@ export default function SignupForm() {
         setError(null);
 
         try {
-            const { data, error } = await register({
+            const { error } = await register({
                 email: formData.email,
                 password: formData.password,
                 name: `${formData.firstName} ${formData.lastName}`,
@@ -116,7 +116,7 @@ export default function SignupForm() {
                     await checkAuth();
                     router.push(paths.dashboard.home);
                 },
-                onError: (ctx) => {
+                onError: () => {
                     setError("Une erreur est survenue lors de l'inscription");
                 },
             });
@@ -124,7 +124,7 @@ export default function SignupForm() {
             if (error) {
                 setError(error.message || "Une erreur est survenue lors de l'inscription");
             }
-        } catch (err) {
+        } catch (_error) {
             setError("Une erreur est survenue lors de l'inscription");
         } finally {
             setIsLoading(false);

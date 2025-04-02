@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
@@ -400,7 +400,7 @@ export default function EditDevisPage({ quote, clients, products }: EditDevisPag
 
                                 {/* Date d'échéance */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="dueDate">Date d'échéance</Label>
+                                    <Label htmlFor="dueDate">Date d&apos;échéance</Label>
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <Button
@@ -685,7 +685,7 @@ export default function EditDevisPage({ quote, clients, products }: EditDevisPag
                                 </DialogHeader>
                                 <DialogFooter>
                                     <Button variant="outline" onClick={() => setConfirmCancel(false)}>
-                                        Continuer l'édition
+                                        Continuer l&apos;édition
                                     </Button>
                                     <Button
                                         variant="destructive"

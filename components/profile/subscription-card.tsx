@@ -61,7 +61,7 @@ export function SubscriptionCard({
               className="w-full"
               onClick={() => router.push(paths.dashboard.subscription.index(user?.id ?? ""))}
             >
-              Gérer l'abonnement
+              Gérer l&apos;abonnement
             </Button>
           </motion.div>
         </CardContent>

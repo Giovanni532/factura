@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
-import { Moon, Sun, Menu, X, User, LogIn } from "lucide-react"
+import { motion } from "framer-motion"
+import { Menu, User, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useTheme } from "next-themes"
@@ -22,7 +22,7 @@ export default function Navbar() {
     const pathname = usePathname()
     const { theme, setTheme } = useTheme()
     const [isScrolled, setIsScrolled] = useState(false)
-    const [isMounted, setIsMounted] = useState(false)
+    const [_isMounted, setIsMounted] = useState(false)
     const [isOpen, setIsOpen] = useState(false)
 
     const { isAuthenticated, isLoading, checkAuth } = useAuthStore()
@@ -40,10 +40,6 @@ export default function Navbar() {
         window.addEventListener("scroll", handleScroll)
         return () => window.removeEventListener("scroll", handleScroll)
     }, [])
-
-    const toggleTheme = () => {
-        setTheme(theme === "dark" ? "light" : "dark")
-    }
 
     if (isLoading) {
         return null

@@ -13,17 +13,16 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Item, QuoteItem } from "@prisma/client"
 
 interface QuoteItemsSectionProps {
-  items: QuoteItem[]
+  items: (QuoteItem & { description: string })[]
   errors: Record<string, string>
   onAdd: () => void
   onUpdate: (index: number, field: string, value: any) => void
   onRemove: (index: number) => void
   products: Item[]
-  itemDescriptions: Record<string, string>
   updateItemDescription: (index: number, description: string) => void
 }
 
-export function QuoteItemsSection({ items, errors, onAdd, onUpdate, onRemove, products, itemDescriptions, updateItemDescription }: QuoteItemsSectionProps) {
+export function QuoteItemsSection({ items, errors, onAdd, onUpdate, onRemove, products, updateItemDescription }: QuoteItemsSectionProps) {
   // Fonction pour formater le prix
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("fr-FR", {
@@ -111,7 +110,7 @@ export function QuoteItemsSection({ items, errors, onAdd, onUpdate, onRemove, pr
                     {items.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={6} className="h-24 text-center">
-                          Aucune ligne ajoutée. Cliquez sur "Ajouter une ligne" pour commencer.
+                          Aucune ligne ajoutée. Cliquez sur &quot;Ajouter une ligne&quot; pour commencer.
                         </TableCell>
                       </TableRow>
                     ) : (

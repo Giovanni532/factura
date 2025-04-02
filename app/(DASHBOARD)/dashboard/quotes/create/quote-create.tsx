@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { ArrowLeft } from "lucide-react"
@@ -13,13 +12,6 @@ import { Client, Item } from "@prisma/client"
 import { createQuote } from "@/actions/quote"
 import { useAction } from "@/hooks/use-action"
 import { paths } from "@/paths"
-
-// Type pour le résultat de l'action createQuote
-interface CreateQuoteResult {
-    success: boolean;
-    message: string;
-    quoteId?: string;
-}
 
 export default function QuoteCreateFormPage({ clients, products }: { clients: Client[], products: Item[] }) {
     const router = useRouter()
@@ -65,7 +57,7 @@ export default function QuoteCreateFormPage({ clients, products }: { clients: Cl
     // Fonction pour gérer la soumission du formulaire
     const handleSubmit = async (formData: any) => {
         // Préparer les items du devis avec leurs descriptions
-        const quoteItems = formData.quoteItems.map((item: any, index: number) => ({
+        const quoteItems = formData.quoteItems.map((item: any, _index: number) => ({
             id: item.id,
             itemId: item.itemId,
             quantity: item.quantity,

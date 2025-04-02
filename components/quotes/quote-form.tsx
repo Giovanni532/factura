@@ -63,13 +63,15 @@ export function QuoteForm({ onSubmit, onCancel, isSubmitting, clients, products 
 
         {/* Section des lignes de devis */}
         <QuoteItemsSection
-          items={formState.quoteItems}
+          items={formState.quoteItems.map(item => ({
+            ...item,
+            description: itemDescriptions[item.id] || ""
+          }))}
           errors={errors}
           onAdd={addQuoteItem}
           onUpdate={updateQuoteItem}
           onRemove={removeQuoteItem}
           products={products}
-          itemDescriptions={itemDescriptions}
           updateItemDescription={updateItemDescription}
         />
 

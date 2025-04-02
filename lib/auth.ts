@@ -8,7 +8,7 @@ export const auth = betterAuth({
     }),
     emailAndPassword: {
         enabled: true,
-        sendResetPassword: async ({ user, url, token }, request) => {
+        sendResetPassword: async ({ user, url, token }, _request) => {
             await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/resend/password-reset`, {
                 method: 'POST',
                 headers: {
@@ -24,5 +24,5 @@ export const auth = betterAuth({
         },
         resetPasswordTokenExpiresIn: 3600, // 1 hour
     },
-    
+
 });

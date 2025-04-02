@@ -29,7 +29,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { paths } from "@/paths"
-import { QuoteDetail, QuoteStatus, duplicateQuote, deleteQuote, downloadQuotePdf, convertQuoteToInvoice } from "@/actions/quote"
+import { QuoteDetail, QuoteStatus, duplicateQuote, deleteQuote, convertQuoteToInvoice } from "@/actions/quote"
 import { useAction } from "@/hooks/use-action"
 import { QuotePdfGenerator } from "@/components/quotes/quote-pdf-generator"
 import { QuotePrintService } from "@/components/quotes/quote-print-service"
@@ -42,16 +42,6 @@ type DevisStatus = QuoteStatus
 interface ActionResult {
     success: boolean;
     message: string;
-}
-
-interface DuplicateQuoteResult extends ActionResult {
-    quoteId?: string;
-}
-
-interface DeleteQuoteResult extends ActionResult { }
-
-interface DownloadPdfResult extends ActionResult {
-    pdfUrl?: string;
 }
 
 interface ConvertToInvoiceResult extends ActionResult {
@@ -155,8 +145,8 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
         }
     });
 
-    const { execute: executeDelete, isLoading: isDeleting } = useAction<{ id: string }, DeleteQuoteResult>(deleteQuote as any, {
-        onSuccess: (data) => {
+    const { execute: executeDelete, isLoading: isDeleting } = useAction<{ id: string }, ActionResult>(deleteQuote as any, {
+        onSuccess: (_data) => {
             toast.success("Devis supprimé avec succès");
             setDeleteDialogOpen(false);
             router.push(paths.dashboard.quotes.list);
@@ -196,11 +186,6 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
         if (!quote.discount) return 0
         const subtotal = calculateSubtotal()
         return quote.discount.type === "percentage" ? (subtotal * quote.discount.value) / 100 : quote.discount.value
-    }
-
-    const calculateTotal = () => {
-        // Use the server-provided total if available, otherwise calculate it client-side
-        return quote.total || calculateSubtotal() + calculateTaxes() - calculateDiscount()
     }
 
     // Remplacer par une fonction qui renvoie toujours le total du serveur

@@ -98,7 +98,7 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
     const router = useRouter()
 
     // Bind server actions with the useAction hook
-    const { execute: executeDuplicate, isLoading: isDuplicating } = useAction<{ id: string }, any>(duplicateQuote as any, {
+    const { execute: executeDuplicate, isLoading: _isDuplicating } = useAction<{ id: string }, any>(duplicateQuote as any, {
         onSuccess: (data) => {
             // Then safely access the quoteId property
             const quoteId = data?.quoteId || data?.data?.quoteId;
@@ -120,7 +120,7 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
     });
 
     const { execute: executeDelete, isLoading: isDeleting } = useAction<{ id: string }, any>(deleteQuote as any, {
-        onSuccess: (data) => {
+        onSuccess: (_data) => {
             toast.success("Devis supprimé avec succès");
             setDeleteDialogOpen(false);
             setDevisToDelete(null);
@@ -288,7 +288,7 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
             </div>
             <h3 className="text-xl font-medium mb-2">Aucun devis trouvé</h3>
             <p className="text-muted-foreground text-center max-w-md mb-6">
-                Vous n'avez pas encore créé de devis ou aucun devis ne correspond à vos critères de recherche.
+                Vous n&apos;avez pas encore créé de devis ou aucun devis ne correspond à vos critères de recherche.
             </p>
             <Button onClick={() => router.push(paths.dashboard.quotes.create)}>
                 <Plus className="mr-2 h-4 w-4" />

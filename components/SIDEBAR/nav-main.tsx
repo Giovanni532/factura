@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { PlusCircleIcon, MoreHorizontalIcon, type LucideIcon } from "lucide-react"
+import { MoreHorizontalIcon, type LucideIcon } from "lucide-react"
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import {

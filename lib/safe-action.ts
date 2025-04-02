@@ -53,7 +53,6 @@ export const authActionClient = baseActionClient.use(async ({ next }) => {
         ctx: {
             user: user,
             userId: user.id as string,
-            role: user?.role as string,
         },
     });
 });
@@ -80,7 +79,7 @@ export const safeAction = baseActionClient;
 // Fonction pour créer des mutations qui nécessitent une authentification
 export function useMutation<TInput, TOutput>(
     schema: ZodSchema<TInput>,
-    handler: (input: TInput, ctx: { user: any; userId: string, role: string }) => Promise<TOutput>
+    handler: (input: TInput, ctx: { user: any; userId: string }) => Promise<TOutput>
 ) {
     return authActionClient
         .schema(schema)
@@ -93,7 +92,7 @@ export function useMutation<TInput, TOutput>(
 export function useRoleMutation<TInput, TOutput>(
     schema: ZodSchema<TInput>,
     role: string,
-    handler: (input: TInput, ctx: { user: any; userId: string, role: string }) => Promise<TOutput>
+    handler: (input: TInput, ctx: { user: any; userId: string }) => Promise<TOutput>
 ) {
     return createRoleMiddleware(role)
         .schema(schema)

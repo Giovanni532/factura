@@ -36,7 +36,7 @@ interface SubscriptionPlansProps {
 
 export function SubscriptionPlans({ currentPlan }: SubscriptionPlansProps) {
     const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly")
-    const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null)
+    const [_selectedPlan, setSelectedPlan] = useState<Plan | null>(null)
 
     const handlePlanSelection = (plan: Plan) => {
         setSelectedPlan(plan)

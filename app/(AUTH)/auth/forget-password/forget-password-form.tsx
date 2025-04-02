@@ -40,11 +40,11 @@ export default function ForgetPasswordForm() {
         email: email,
         redirectTo: paths.auth.resetPassword,
       })
-      
+
       // Si l'erreur est liée à un utilisateur non trouvé, on ne l'affiche pas à l'utilisateur
       // pour des raisons de sécurité
-      if (errorAuthClient && errorAuthClient.message && 
-          !errorAuthClient.message.toLowerCase().includes("not found")) {
+      if (errorAuthClient && errorAuthClient.message &&
+        !errorAuthClient.message.toLowerCase().includes("not found")) {
         setError(errorAuthClient.message || "Une erreur est survenue lors de l'envoi de l'email")
         setIsLoading(false)
         return
@@ -113,7 +113,7 @@ export default function ForgetPasswordForm() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
             >
-              Si un compte existe avec l'adresse {email}, vous recevrez un email avec les instructions pour réinitialiser votre mot de passe.
+              Si un compte existe avec l&apos;adresse {email}, vous recevrez un email avec les instructions pour réinitialiser votre mot de passe.
             </motion.p>
             <motion.div
               initial={{ opacity: 0 }}

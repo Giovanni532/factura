@@ -87,14 +87,14 @@ export function CompanyInfoTab({ userData, errors, updateCompanyField }: Company
           <CardHeader>
             <CardTitle className="flex items-center">
               <Building2 className="mr-2 h-5 w-5" />
-              Informations de l'entreprise
+              Informations de l&apos;entreprise
             </CardTitle>
             <CardDescription>Ces informations apparaîtront sur vos devis et factures.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Nom de l'entreprise */}
             <motion.div className="space-y-2" variants={itemVariants}>
-              <Label htmlFor="companyName">Nom de l'entreprise</Label>
+              <Label htmlFor="companyName">Nom de l&apos;entreprise</Label>
               <Input
                 id="companyName"
                 value={userData.business.name || ''}

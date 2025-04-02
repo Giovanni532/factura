@@ -22,12 +22,12 @@ export const EmailForgetPassword: React.FC<Readonly<EmailForgetPasswordProps>> =
       Bonjour {userName || 'utilisateur'},
     </p>
     <p style={{ fontSize: '16px', lineHeight: '1.5', color: '#555' }}>
-      Nous avons reçu une demande de réinitialisation de mot de passe pour votre compte. 
+      Nous avons reçu une demande de réinitialisation de mot de passe pour votre compte.
       Veuillez cliquer sur le lien ci-dessous pour définir un nouveau mot de passe:
     </p>
     <div style={{ margin: '32px 0' }}>
-      <a 
-        href={resetLink} 
+      <a
+        href={resetLink}
         style={{
           backgroundColor: '#0070f3',
           color: 'white',
@@ -42,7 +42,7 @@ export const EmailForgetPassword: React.FC<Readonly<EmailForgetPasswordProps>> =
       </a>
     </div>
     <p style={{ fontSize: '16px', lineHeight: '1.5', color: '#555' }}>
-      Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet email.
+      Si vous n&apos;avez pas demandé cette réinitialisation, veuillez ignorer cet email.
     </p>
     <p style={{ fontSize: '16px', lineHeight: '1.5', color: '#555', marginTop: '32px' }}>
       Ce lien expirera dans 1 heure pour des raisons de sécurité.

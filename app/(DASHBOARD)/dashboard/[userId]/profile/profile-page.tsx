@@ -1,12 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { Save, Check } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { toast } from "sonner"
 import { containerVariants, fadeInVariants } from "@/app/(DASHBOARD)/dashboard/[userId]/profile/animations"
 import { PersonalInfoTab } from "@/components/profile/personal-info-tab"
 import { CompanyInfoTab } from "@/components/profile/company-info-tab"
@@ -14,27 +10,23 @@ import { PasswordDialog } from "@/components/profile/password-dialog"
 import { UserProfile } from "@/lib/utils"
 
 export default function ProfilePageClient({ user }: { user: UserProfile }) {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
   const [showPasswordDialog, setShowPasswordDialog] = useState(false)
-
   const [userData, setUserData] = useState<UserProfile>(user)
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [errors, _setErrors] = useState<Record<string, string>>({})
   const [activeTab, setActiveTab] = useState("personal")
-  const [saveSuccess, setSaveSuccess] = useState(false)
 
   useEffect(() => {
     setUserData(user)
   }, [user])
 
-  const updateUserField = (field: keyof UserProfile, value: any) => {
+  const updateUserField = (field: keyof UserProfile, value: string) => {
     setUserData((prev) => ({
       ...prev,
       [field]: value,
     }))
   }
 
-  const updateCompanyField = (field: keyof UserProfile["business"], value: any) => {
+  const updateCompanyField = (field: keyof UserProfile["business"], value: string) => {
     setUserData((prev) => ({
       ...prev,
       business: {

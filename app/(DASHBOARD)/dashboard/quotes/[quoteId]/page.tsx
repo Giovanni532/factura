@@ -3,17 +3,13 @@ import { getQuoteById } from '@/actions/quote'
 import QuoteDetailPage from './quote-detail';
 import { unstable_noStore } from 'next/cache';
 import { getUserQuotes } from '@/actions/quote'
-import { Quote } from '@/actions/quote'
-
-export const getQuotes = async () => {
-    const response = await getUserQuotes({});
-    const quotes: Quote[] = response?.data?.quotes || [];
-    return quotes;
-}
 
 export async function generateStaticParams() {
-    const quotes = await getQuotes();
-    return quotes.map((quote) => ({
+    const quotes = await getUserQuotes({});
+    if (!quotes?.data?.quotes) {
+        return [];
+    }
+    return quotes.data.quotes.map((quote) => ({
         quoteId: quote.id,
     }));
 }
@@ -43,7 +39,7 @@ export default async function QuotesPageDetail({ params }: { params: Promise<{ q
                 <div className="flex flex-col items-center justify-center h-96">
                     <h2 className="text-2xl font-semibold mb-2">Devis introuvable</h2>
                     <p className="text-muted-foreground">
-                        Le devis que vous recherchez n'existe pas ou vous n'avez pas les permissions nécessaires.
+                        Le devis que vous recherchez n&apos;existe pas ou vous n&apos;avez pas les permissions nécessaires.
                     </p>
                 </div>
             </div>

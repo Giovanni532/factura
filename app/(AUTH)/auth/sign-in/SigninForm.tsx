@@ -36,7 +36,7 @@ export default function SignInForm() {
         setIsLoading(true)
 
         try {
-            const { data, error } = await login({
+            const { error } = await login({
                 email: formData.email,
                 password: formData.password,
                 callbackURL: paths.dashboard.home,
@@ -49,7 +49,7 @@ export default function SignInForm() {
                     await checkAuth();
                     router.push(paths.dashboard.home);
                 },
-                onError: (ctx) => {
+                onError: () => {
                     setError("Une erreur est survenue lors de la connexion");
                 },
             });
@@ -57,7 +57,7 @@ export default function SignInForm() {
             if (error) {
                 setError("Une erreur est survenue lors de la connexion");
             }
-        } catch (err) {
+        } catch (_error) {
             setError("Une erreur est survenue lors de la connexion");
         } finally {
             setIsLoading(false);
@@ -155,9 +155,9 @@ export default function SignInForm() {
                             {error && <motion.div variants={itemVariants} className="mt-4 text-center text-sm text-red-500">{error}</motion.div>}
 
                             <div className="mt-4 text-center text-sm">
-                                Vous n'avez pas de compte ?{" "}
+                                Vous n&apos;avez pas de compte ?{" "}
                                 <Link href={paths.auth.signUp} className="text-primary hover:underline">
-                                    S'inscrire
+                                    S&apos;inscrire
                                 </Link>
                             </div>
                         </motion.div>
