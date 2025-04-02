@@ -17,10 +17,9 @@ interface CompanyPreviewProps {
     country: string
   }
   siret?: string
-  vatNumber?: string
 }
 
-export function CompanyPreview({ name, logo, address, siret, vatNumber }: CompanyPreviewProps) {
+export function CompanyPreview({ name, logo, address, siret }: CompanyPreviewProps) {
   return (
     <motion.div variants={cardVariants}>
       <Card>
@@ -55,12 +54,11 @@ export function CompanyPreview({ name, logo, address, siret, vatNumber }: Compan
             <p>{address.country}</p>
           </motion.div>
 
-          {(siret || vatNumber) && (
+          {siret && (
             <>
               <Separator />
               <motion.div className="space-y-1 text-sm" variants={itemVariants}>
-                {siret && <p>SIRET: {siret}</p>}
-                {vatNumber && <p>TVA: {vatNumber}</p>}
+                {siret && <p>Numéro de TVA: {siret}</p>}
               </motion.div>
             </>
           )}

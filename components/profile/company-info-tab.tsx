@@ -208,20 +208,11 @@ export function CompanyInfoTab({ userData, errors, updateCompanyField }: Company
             {/* Numéros fiscaux */}
             <motion.div className="grid grid-cols-1 md:grid-cols-2 gap-4" variants={itemVariants}>
               <div className="space-y-2">
-                <Label htmlFor="siret">Numéro SIRET</Label>
+                <Label htmlFor="siret">Numéro de TVA</Label>
                 <Input
                   id="siret"
                   value={userData.business.taxId || ""}
                   onChange={(e) => updateCompanyField("taxId", e.target.value)}
-                  placeholder="Facultatif"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vatNumber">Numéro de TVA</Label>
-                <Input
-                  id="vatNumber"
-                  value={userData.business.vatNumber || ""}
-                  onChange={(e) => updateCompanyField("vatNumber", e.target.value)}
                   placeholder="Facultatif"
                 />
               </div>
@@ -257,7 +248,6 @@ export function CompanyInfoTab({ userData, errors, updateCompanyField }: Company
         logo={userData.business.logoUrl || ''}
         address={addressObj}
         siret={userData.business.taxId || ''}
-        vatNumber={userData.business.vatNumber || ''}
       />
     </motion.div>
   )
