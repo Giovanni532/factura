@@ -325,29 +325,6 @@ export const updateQuote = useMutation(
                     }
                 });
 
-                // Si nous voulions enregistrer la remise de manière persistante, nous pourrions créer une table spécifique
-                // pour stocker les informations de remise. Pour l'instant, elle est incluse dans le calcul du total.
-
-                // Exemple de ce que nous pourrions faire si nous avions une table Discount:
-                // if (input.discount) {
-                //    await tx.discount.upsert({
-                //        where: { quoteId: input.id },
-                //        update: {
-                //            type: input.discount.type,
-                //            value: input.discount.value,
-                //        },
-                //        create: {
-                //            quoteId: input.id,
-                //            type: input.discount.type,
-                //            value: input.discount.value,
-                //        }
-                //    });
-                // } else {
-                //    await tx.discount.deleteMany({
-                //        where: { quoteId: input.id }
-                //    });
-                // }
-
                 // Get the map of existing quote items by ID for reference
                 const existingItemsMap = existingQuote.quoteItems.reduce((map, item) => {
                     map[item.id] = item;
