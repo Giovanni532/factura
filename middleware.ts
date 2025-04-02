@@ -31,12 +31,17 @@ const isDashboardRoute = (path: string) => {
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
-    const cookieStore = await cookies();
-    const session = cookieStore.get("better-auth.session_token");
-    const hasSession = !!session?.value;
+
+    // Get the auth session token directly from request cookies
+    const sessionToken = request.cookies.get("better-auth.session_token");
+    const hasSession = !!sessionToken?.value;
 
     // 1. Si la route est publique, permettre l'accès sans restriction
     if (isPublicRoute(pathname)) {
+        // Sauf si l'utilisateur est connecté et tente d'accéder aux pages d'authentification
+        if (hasSession) {
+            return NextResponse.redirect(new URL(paths.dashboard.home, request.url));
+        }
         return NextResponse.next();
     }
 
@@ -46,11 +51,6 @@ export async function middleware(request: NextRequest) {
         const url = new URL(paths.auth.signIn, request.url);
         url.searchParams.set('callbackUrl', pathname);
         return NextResponse.redirect(url);
-    }
-
-    // 3. Si l'utilisateur est connecté et tente d'accéder aux pages d'authentification
-    if (hasSession && pathname.startsWith('/auth')) {
-        return NextResponse.redirect(new URL(paths.dashboard.home, request.url));
     }
 
     // 4. Pour les API routes ou autres routes spéciales, laisser passer
