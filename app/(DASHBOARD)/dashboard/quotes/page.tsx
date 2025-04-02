@@ -16,6 +16,14 @@ export async function generateMetadata() {
     }
 }
 
+export async function generateStaticParams() {
+    const quotes = await getUserQuotes({});
+    if (!quotes?.data?.quotes) {
+        return [];
+    }
+    return quotes.data.quotes.map((quote) => ({ quoteId: quote.id }));
+}
+
 export default async function QuotesPage() {
     const quotes = await getUserQuotes({});
     const quotesData = quotes?.data?.quotes || [];

@@ -1,9 +1,17 @@
 import React from 'react'
 import EditDevisPage from './quote-edit'
-import { getQuoteById } from '@/actions/quote'
+import { getQuoteById, getUserQuotes } from '@/actions/quote'
 import { getClientsByUserId } from '@/actions/client'
 import { getProductsByUserId } from '@/actions/produit'
 import { getUser } from '@/actions/auth'
+
+export async function generateStaticParams() {
+    const quotes = await getUserQuotes({});
+    if (!quotes?.data?.quotes) {
+        return [];
+    }
+    return quotes.data.quotes.map((quote) => ({ quoteId: quote.id }));
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ quoteId: string }> }) {
     const { quoteId } = await params;
