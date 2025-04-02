@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/dialog"
 import { toast } from "sonner"
 import { containerVariants, itemVariants } from "@/app/(DASHBOARD)/dashboard/[userId]/profile/animations"
+import { updatePassword } from "@/actions/user"
+import { useAction } from "@/hooks/use-action"
 
 interface PasswordDialogProps {
   open: boolean
@@ -25,11 +27,38 @@ interface PasswordDialogProps {
 }
 
 export function PasswordDialog({ open, onOpenChange }: PasswordDialogProps) {
-  const [isLoading, setIsLoading] = useState(false)
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Utilisation du hook useAction pour la mise à jour du mot de passe
+  const { execute: executePasswordUpdate, isLoading, error } = useAction(updatePassword, {
+    onSuccess: (data) => {
+      if (data?.data?.success) {
+        // Réinitialiser les champs
+        setCurrentPassword("")
+        setNewPassword("")
+        setConfirmPassword("")
+        setErrors({})
+
+        // Fermer la boîte de dialogue
+        onOpenChange(false)
+
+        toast.success("Mot de passe mis à jour", {
+          description: "Votre mot de passe a été modifié avec succès.",
+        })
+      }
+    },
+    onError: (error) => {
+      console.error("Erreur lors de la mise à jour du mot de passe:", error)
+
+      // Afficher l'erreur dans le toast
+      toast.error("Erreur", {
+        description: error || "Une erreur est survenue lors de la mise à jour du mot de passe.",
+      })
+    }
+  })
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -61,33 +90,12 @@ export function PasswordDialog({ open, onOpenChange }: PasswordDialogProps) {
       return
     }
 
-    setIsLoading(true)
-    try {
-      // Simuler un délai de traitement
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Dans une vraie application, vous enverriez les données au serveur ici
-      console.log("Mot de passe mis à jour")
-
-      // Réinitialiser les champs
-      setCurrentPassword("")
-      setNewPassword("")
-      setConfirmPassword("")
-
-      // Fermer la boîte de dialogue
-      onOpenChange(false)
-
-      toast.success("Mot de passe mis à jour", {
-        description: "Votre mot de passe a été modifié avec succès.",
-      })
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour du mot de passe:", error)
-      toast.error("Une erreur est survenue lors de la mise à jour du mot de passe.", {
-        description: "Veuillez réessayer plus tard.",
-      })
-    } finally {
-      setIsLoading(false)
-    }
+    // Appeler la server action
+    await executePasswordUpdate({
+      oldPassword: currentPassword,
+      newPassword: newPassword,
+      confirmPassword: confirmPassword
+    })
   }
 
   return (
@@ -114,6 +122,7 @@ export function PasswordDialog({ open, onOpenChange }: PasswordDialogProps) {
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   className={errors.currentPassword ? "border-destructive" : ""}
+                  disabled={isLoading}
                 />
                 {errors.currentPassword && (
                   <motion.p
@@ -134,6 +143,7 @@ export function PasswordDialog({ open, onOpenChange }: PasswordDialogProps) {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   className={errors.newPassword ? "border-destructive" : ""}
+                  disabled={isLoading}
                 />
                 {errors.newPassword && (
                   <motion.p
@@ -154,6 +164,7 @@ export function PasswordDialog({ open, onOpenChange }: PasswordDialogProps) {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className={errors.confirmPassword ? "border-destructive" : ""}
+                  disabled={isLoading}
                 />
                 {errors.confirmPassword && (
                   <motion.p
@@ -167,7 +178,7 @@ export function PasswordDialog({ open, onOpenChange }: PasswordDialogProps) {
               </motion.div>
 
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
                   Annuler
                 </Button>
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>

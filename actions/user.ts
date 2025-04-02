@@ -1,8 +1,9 @@
 "use server"
 
+import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { useMutation } from "@/lib/safe-action"
-import { personalInfoSchema, businessInfoSchema, updateProfileSchema } from "@/validations/user"
+import { personalInfoSchema, businessInfoSchema, updateProfileSchema, updatePasswordSchema } from "@/validations/user"
 import { revalidatePath } from "next/cache"
 
 // Action pour mettre à jour les informations personnelles
@@ -164,6 +165,29 @@ export const updateProfile = useMutation(
             }
         } catch (error) {
             throw new Error(`Erreur lors de la mise à jour du profil: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
+        }
+    }
+)
+
+export const updatePassword = useMutation(
+    updatePasswordSchema,
+    async (data, { userId }) => {
+        const ctx = await auth.$context
+
+        if (data.newPassword !== data.confirmPassword) {
+            return {
+                success: false,
+                message: "Les mots de passe ne correspondent pas",
+            }
+        }
+
+        const hashedPassword = await ctx.password.hash(data.newPassword)
+
+        await ctx.internalAdapter.updatePassword(userId, hashedPassword)
+
+        return {
+            success: true,
+            message: "Mot de passe mis à jour avec succès",
         }
     }
 )

@@ -1,5 +1,17 @@
 import { z } from "zod";
 
+// Schéma pour la mise à jour du mot de passe
+export const updatePasswordSchema = z.object({
+    oldPassword: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
+    newPassword: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
+    confirmPassword: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Les mots de passe ne correspondent pas",
+    path: ["confirmPassword"],
+});
+
+export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>;
+
 // Schéma pour l'adresse de l'entreprise
 export const addressSchema = z.object({
     street: z.string().optional(),
