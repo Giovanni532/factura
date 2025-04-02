@@ -2,6 +2,30 @@ import React from 'react'
 import { getQuoteById } from '@/actions/quote'
 import QuoteDetailPage from './quote-detail';
 import { unstable_noStore } from 'next/cache';
+import { getUserQuotes } from '@/actions/quote'
+import { Quote } from '@/actions/quote'
+
+export const getQuotes = async () => {
+    const response = await getUserQuotes({});
+    const quotes: Quote[] = response?.data?.quotes || [];
+    return quotes;
+}
+
+export async function generateStaticParams() {
+    const quotes = await getQuotes();
+    return quotes.map((quote) => ({
+        quoteId: quote.id,
+    }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ quoteId: string }> }) {
+    const { quoteId } = await params;
+    const quote = await getQuoteById({ id: quoteId });
+    return {
+        title: `Devis | Factura (${quote?.data?.quote?.id})`,
+        description: `Voir le devis ${quote?.data?.quote?.id}`,
+    }
+}
 
 export default async function QuotesPageDetail({ params }: { params: Promise<{ quoteId: string }> }) {
     // Désactiver la mise en cache pour cette page
