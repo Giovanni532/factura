@@ -34,7 +34,7 @@ import { toast } from "sonner"
 import { paths } from "@/paths"
 
 // Types
-type DevisStatus = "draft" | "sent" | "accepted" | "rejected" | "converted"
+type DevisStatus = "draft" | "sent" | "accepted" | "rejected"
 type DevisItem = {
     id: string
     productId: string
@@ -360,7 +360,6 @@ export default function EditDevisPage({ quote, clients, products }: EditDevisPag
                                             <SelectItem className="cursor-pointer" value="sent">Envoyé</SelectItem>
                                             <SelectItem className="cursor-pointer" value="accepted">Accepté</SelectItem>
                                             <SelectItem className="cursor-pointer" value="rejected">Refusé</SelectItem>
-                                            <SelectItem className="cursor-pointer" value="converted">Converti en facture</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
