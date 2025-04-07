@@ -159,18 +159,12 @@ export const getQuoteById = useMutation(
             const business = quote.user.businesses[0]; // Assuming the user has at least one business
 
             // Extract client address components or provide defaults
+            console.log(quote.client.address)
             const clientAddress = quote.client.address?.split('\n') || [];
             const [street = "", cityInfo = "", country = ""] = clientAddress;
             const cityParts = cityInfo.split(' ');
             const postalCode = cityParts.length > 0 ? cityParts[0] : "";
             const city = cityParts.slice(1).join(' ') || "";
-
-            // Extract business address components or provide defaults
-            const businessAddress = business?.address?.split('\n') || [];
-            const [bizStreet = "", bizCityInfo = "", bizCountry = ""] = businessAddress;
-            const bizCityParts = bizCityInfo.split(' ');
-            const bizPostalCode = bizCityParts.length > 0 ? bizCityParts[0] : "";
-            const bizCity = bizCityParts.slice(1).join(' ') || "";
 
             // Format quote items
             const items = quote.quoteItems.map(qItem => ({
@@ -225,10 +219,10 @@ export const getQuoteById = useMutation(
                     name: business?.name || "Your Company",
                     email: quote.user.email || "contact@company.com",
                     address: {
-                        street: bizStreet,
-                        city: bizCity,
-                        postalCode: bizPostalCode,
-                        country: bizCountry
+                        street: business?.address || "",
+                        city: business?.city || "",
+                        postalCode: business?.postalCode || "",
+                        country: business?.country || ""
                     },
                     logo: business?.logoUrl || undefined,
                     taxId: business?.taxId || ""

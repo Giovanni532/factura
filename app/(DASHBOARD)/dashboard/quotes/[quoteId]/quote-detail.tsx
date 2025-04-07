@@ -158,14 +158,10 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
     });
 
     const { execute: executeConvert, isLoading: isConverting } = useAction<{ id: string }, ConvertToInvoiceResult>(convertQuoteToInvoice as any, {
-        onSuccess: (data) => {
+        onSuccess: (_data) => {
             toast.success("Devis converti en facture avec succès");
             setConvertDialogOpen(false);
-            if (data.invoiceId) {
-                router.push(paths.dashboard.invoices.detail(data.invoiceId));
-            } else {
-                router.refresh();
-            }
+            router.refresh();
         },
         onError: (error) => {
             toast.error(error);
@@ -242,7 +238,6 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
 
     // Vérifier si le devis peut être converti
     const canBeConverted = quote.status !== "CONVERTED";
-
     return (
         <div className="container mx-auto px-4 py-6 max-w-7xl">
             <div className="flex flex-col space-y-8">
@@ -361,7 +356,7 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
                                     <div className="text-sm">
                                         <div>{quote.company.address.street}</div>
                                         <div>
-                                            {quote.company.address.postalCode} {quote.company.address.city}
+                                            {quote.company.address.postalCode}, {quote.company.address.city}
                                         </div>
                                         <div>{quote.company.address.country}</div>
                                     </div>
