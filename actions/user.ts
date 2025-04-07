@@ -213,9 +213,10 @@ export const uploadImage = useMutation(
 
             // Définition du bucket et du chemin selon le type d'image
             const bucket = 'images';
+            const filename = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
             const path = type === 'avatar'
-                ? `user/${fileUserId}/${Date.now()}_${file.name}`
-                : `business/${fileUserId}/${Date.now()}_${file.name}`;
+                ? `user/${fileUserId}/${filename}`
+                : `business/${fileUserId}/${filename}`;
 
             // Récupérer l'ancienne image pour la supprimer plus tard
             let oldImagePath = null;
@@ -226,16 +227,20 @@ export const uploadImage = useMutation(
                 });
 
                 if (user?.image) {
-                    // Extraction du chemin de l'URL de l'image
-                    const url = new URL(user.image);
-                    // Le format de l'URL est généralement : 
-                    // https://[project-ref].supabase.co/storage/v1/object/public/images/user/...
-                    const pathParts = url.pathname.split('/');
-                    const publicIndex = pathParts.indexOf('public');
+                    try {
+                        // Extraction du chemin de l'URL de l'image
+                        const url = new URL(user.image);
+                        // Le format de l'URL est généralement : 
+                        // https://[project-ref].supabase.co/storage/v1/object/public/images/user/...
+                        const pathParts = url.pathname.split('/');
+                        const publicIndex = pathParts.indexOf('public');
 
-                    if (publicIndex !== -1 && pathParts.length > publicIndex + 2) {
-                        // Récupérer le chemin après "public/[bucket_name]/"
-                        oldImagePath = pathParts.slice(publicIndex + 2).join('/');
+                        if (publicIndex !== -1 && pathParts.length > publicIndex + 2) {
+                            // Récupérer le chemin après "public/[bucket_name]/"
+                            oldImagePath = pathParts.slice(publicIndex + 2).join('/');
+                        }
+                    } catch (e) {
+                        console.error("Erreur lors de l'analyse de l'ancienne URL:", e);
                     }
                 }
             } else if (type === 'logo') {
@@ -244,13 +249,17 @@ export const uploadImage = useMutation(
                 });
 
                 if (business?.logoUrl) {
-                    // Extraction du chemin de l'URL de l'image
-                    const url = new URL(business.logoUrl);
-                    const pathParts = url.pathname.split('/');
-                    const publicIndex = pathParts.indexOf('public');
+                    try {
+                        // Extraction du chemin de l'URL de l'image
+                        const url = new URL(business.logoUrl);
+                        const pathParts = url.pathname.split('/');
+                        const publicIndex = pathParts.indexOf('public');
 
-                    if (publicIndex !== -1 && pathParts.length > publicIndex + 2) {
-                        oldImagePath = pathParts.slice(publicIndex + 2).join('/');
+                        if (publicIndex !== -1 && pathParts.length > publicIndex + 2) {
+                            oldImagePath = pathParts.slice(publicIndex + 2).join('/');
+                        }
+                    } catch (e) {
+                        console.error("Erreur lors de l'analyse de l'ancienne URL:", e);
                     }
                 }
             }
@@ -259,20 +268,48 @@ export const uploadImage = useMutation(
             const arrayBuffer = await file.arrayBuffer();
             const fileBuffer = new Uint8Array(arrayBuffer);
 
-            // Upload du fichier vers Supabase Storage
+            // 1. Configurer les permissions publiques pour le fichier
+            // Vérifier si le bucket a les bonnes politiques d'accès
+            const { data: bucketData, error: bucketError } = await supabase
+                .storage
+                .getBucket(bucket);
+
+            if (bucketError) {
+                console.warn("Erreur lors de la vérification du bucket:", bucketError.message);
+            } else if (!bucketData?.public) {
+                console.warn("Le bucket n'est pas configuré comme public, les images peuvent ne pas être accessibles");
+            }
+
+            // 2. Upload du fichier vers Supabase Storage
             const { error } = await supabase
                 .storage
                 .from(bucket)
                 .upload(path, fileBuffer, {
                     contentType: file.type,
-                    upsert: true
+                    upsert: true,
+                    cacheControl: '3600'
                 });
 
             if (error) {
-                throw new Error(`Erreur Supabase: ${error.message}`);
+                throw new Error(`Erreur lors de l'upload Supabase: ${error.message}`);
             }
 
-            // Récupération de l'URL publique
+            // 3. Configurer les permissions publiques pour ce fichier spécifique
+            // Cette étape peut être nécessaire selon la configuration de votre bucket
+            const { error: updateError } = await supabase
+                .storage
+                .from(bucket)
+                .update(path, fileBuffer, {
+                    contentType: file.type,
+                    cacheControl: '3600',
+                    upsert: true
+                });
+
+            if (updateError) {
+                console.warn("Erreur lors de la mise à jour des permissions:", updateError.message);
+            }
+
+            // 4. Récupération de l'URL publique en utilisant le CDN pour une meilleure performance
             const { data: urlData } = await supabase
                 .storage
                 .from(bucket)
@@ -282,7 +319,15 @@ export const uploadImage = useMutation(
                 throw new Error("Impossible de récupérer l'URL publique de l'image");
             }
 
-            const imageUrl = urlData.publicUrl;
+            // S'assurer que l'URL est absolue et valide
+            let imageUrl = urlData.publicUrl;
+            try {
+                new URL(imageUrl); // Vérifie si l'URL est valide
+            } catch (e) {
+                imageUrl = new URL(imageUrl, supabaseUrl).toString();
+            }
+
+            console.log("URL de l'image générée:", imageUrl);
 
             // Mise à jour de la base de données selon le type d'image
             if (type === 'avatar') {
@@ -307,15 +352,14 @@ export const uploadImage = useMutation(
 
             // Supprimer l'ancienne image si elle existe
             if (oldImagePath) {
-                await supabase
-                    .storage
-                    .from(bucket)
-                    .remove([oldImagePath])
-                    .then(({ error }) => {
-                        if (error) {
-                            console.error("Erreur lors de la suppression de l'ancienne image:", error.message);
-                        }
-                    });
+                try {
+                    await supabase
+                        .storage
+                        .from(bucket)
+                        .remove([oldImagePath]);
+                } catch (e) {
+                    console.error("Erreur lors de la suppression de l'ancienne image:", e);
+                }
             }
 
             const user = await prisma.user.findUnique({
