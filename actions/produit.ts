@@ -22,9 +22,7 @@ export const getProductsByUserId = useMutation(
 
         return {
             success: true,
-            data: {
-                items,
-            },
+            items,
         };
     }
 );

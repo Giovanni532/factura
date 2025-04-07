@@ -12,9 +12,9 @@ export const metadata: Metadata = {
 export default async function CreateQuotePage() {
     const user = await getUser()
     const dataClients = await getClientsByUserId({ userId: user?.id ?? "" })
-    const clients = dataClients?.data?.data.clients ?? []
+    const clients = dataClients?.data?.clients ?? []
     const dataProducts = await getProductsByUserId({ userId: user?.id ?? "" })
-    const products = dataProducts?.data?.data.items ?? []
+    const products = dataProducts?.data?.items ?? []
 
     return <QuoteCreatePage clients={clients} products={products} />
 }

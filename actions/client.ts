@@ -27,9 +27,7 @@ export const getClientsByUserId = useMutation(
 
         return {
             success: true,
-            data: {
-                clients,
-            },
+            clients,
         };
     }
 );
