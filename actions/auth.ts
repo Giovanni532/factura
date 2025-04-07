@@ -22,13 +22,21 @@ export async function getUser() {
         avatar: user?.image,
     }
 
-    const business = await prisma.business.findUnique({
+    let business = await prisma.business.findUnique({
         where: {
             userId: session?.user?.id,
         },
     })
 
-    const subscription = await prisma.subscription.findUnique({
+    if (!business) {
+        business = await prisma.business.create({
+            data: {
+                userId: session?.user?.id as string,
+                name: "Business",
+            }
+        })
+    }
+    let subscription = await prisma.subscription.findUnique({
         where: {
             userId: session?.user?.id,
         },
@@ -39,6 +47,16 @@ export async function getUser() {
             plan: true,
         }
     });
+
+    if (!subscription) {
+        subscription = await prisma.subscription.create({
+            data: {
+                userId: session?.user?.id as string,
+                currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                status: 'active',
+            }
+        })
+    }
 
     const userData = {
         ...userProfile,

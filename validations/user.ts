@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+// Schéma pour la validation de l'upload d'image
+export const uploadImageSchema = z.object({
+    file: z.instanceof(File, { message: "Un fichier est requis" }),
+    type: z.enum(["avatar", "logo"], { message: "Le type doit être 'avatar' ou 'logo'" }),
+});
+
 // Schéma pour la mise à jour du mot de passe
 export const updatePasswordSchema = z.object({
     oldPassword: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),

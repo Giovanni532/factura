@@ -101,7 +101,7 @@ export default function SignupForm() {
         setError(null);
 
         try {
-            const { error } = await register({
+            const { data, error } = await register({
                 email: formData.email,
                 password: formData.password,
                 name: `${formData.firstName} ${formData.lastName}`,
@@ -112,7 +112,6 @@ export default function SignupForm() {
                     setIsLoading(true);
                 },
                 onSuccess: async () => {
-                    // Update auth store with new session data
                     await checkAuth();
                     router.push(paths.dashboard.home);
                 },

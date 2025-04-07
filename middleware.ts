@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { cookies } from "next/headers";
 import { paths } from "./paths";
 
 // Routes publiques qui ne nécessitent pas d'authentification

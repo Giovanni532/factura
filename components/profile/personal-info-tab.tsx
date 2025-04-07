@@ -32,6 +32,7 @@ export function PersonalInfoTab({ userData, errors, updateUserField, onPasswordC
 
   const [isUpdating, setIsUpdating] = useState(false)
 
+
   // Convert plan and status to lowercase for the SubscriptionCard component
   const subscriptionPlan = userData.subscription.plan.toLowerCase() as "free" | "starter" | "professional" | "enterprise"
   const subscriptionStatus = userData.subscription.status.toLowerCase() as "active" | "trialing" | "canceled" | "expired"

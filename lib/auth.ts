@@ -24,5 +24,4 @@ export const auth = betterAuth({
         },
         resetPasswordTokenExpiresIn: 3600, // 1 hour
     },
-
 });
