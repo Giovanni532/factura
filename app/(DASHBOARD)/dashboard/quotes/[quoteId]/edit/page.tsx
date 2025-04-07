@@ -33,10 +33,10 @@ export default async function QuotesPageEdit({ params }: { params: Promise<{ quo
     const itemsResult = await getProductsByUserId({ userId: user?.id as string })
 
     // Handle possible errors or undefined responses
-    const clients = clientsResult?.data?.data?.clients || []
+    const clients = clientsResult?.data?.clients || []
 
     // Map Item model to the Product type expected by the EditDevisPage component
-    const products = (itemsResult?.data?.data?.items || []).map(item => ({
+    const products = (itemsResult?.data?.items || []).map(item => ({
         id: item.id,
         name: item.name,
         description: item.description || "",
