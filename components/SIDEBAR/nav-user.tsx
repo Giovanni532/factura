@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/store/auth-store"
 import Link from "next/link"
 import { paths } from "@/paths"
+import Image from "next/image"
 
 const menuItemVariants = {
   hidden: { opacity: 0, y: 10 },
@@ -38,10 +39,11 @@ export function NavUser({
 }: {
   user: {
     id: string
-    name: string
+    firstName: string
+    lastName: string
     email: string
     avatar: string
-  } | null
+  }
   subscription: {
     index: (userId: string) => string
     invoices: {
@@ -78,11 +80,11 @@ export function NavUser({
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <Avatar className="h-8 w-8 rounded-lg grayscale">
-                    <AvatarImage src={user?.avatar} alt={user?.name} />
-                    <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                    <AvatarImage src={user?.avatar} alt={user?.firstName} />
+                    <AvatarFallback className="rounded-lg">{user?.firstName?.charAt(0)} {user?.lastName?.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">{user?.name}</span>
+                    <span className="truncate font-medium">{user?.firstName} {user?.lastName}</span>
                     <span className="truncate text-xs text-muted-foreground">{user?.email}</span>
                   </div>
                   <MoreVerticalIcon className="ml-auto size-4" />
@@ -98,11 +100,11 @@ export function NavUser({
               <DropdownMenuLabel className="p-0 font-normal">
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage src={user?.avatar} alt={user?.name} />
-                    <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                    <AvatarImage src={user?.avatar} alt={user?.firstName} />
+                    <AvatarFallback className="rounded-lg">{user?.firstName?.charAt(0)} {user?.lastName?.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">{user?.name}</span>
+                    <span className="truncate font-medium">{user?.firstName} {user?.lastName}</span>
                     <span className="truncate text-xs text-muted-foreground">{user?.email}</span>
                   </div>
                 </div>

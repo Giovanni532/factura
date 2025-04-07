@@ -318,12 +318,17 @@ export const uploadImage = useMutation(
                     });
             }
 
+            const user = await prisma.user.findUnique({
+                where: { id: fileUserId }
+            })
+
             revalidatePath(`/dashboard/${fileUserId}/profile`);
 
             return {
                 success: true,
                 message: "Image téléchargée avec succès",
-                imageUrl
+                imageUrl,
+                user
             };
         } catch (error) {
             console.error("Erreur d'upload:", error);

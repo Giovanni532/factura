@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { itemVariants } from "@/app/(DASHBOARD)/dashboard/[userId]/profile/animations"
 import { uploadImage } from "@/actions/user"
 import { toast } from "sonner"
-import { useParams } from "next/navigation"
+import { useAuthStore } from "@/store/auth-store"
 
 interface ImageUploaderProps {
   currentImage: string
@@ -33,9 +33,7 @@ export function ImageUploader({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState(currentImage)
-
-  // Récupérer l'ID utilisateur depuis les paramètres d'URL
-  const params = useParams<{ userId: string }>()
+  const { setUser } = useAuthStore()
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -78,6 +76,7 @@ export function ImageUploader({
             if (data.success && data.imageUrl) {
               onImageChange(data.imageUrl);
               toast.success(data.message || "Image téléchargée avec succès");
+              setUser(data.user)
             } else {
               throw new Error("Format de réponse invalide");
             }
