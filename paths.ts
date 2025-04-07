@@ -26,15 +26,10 @@ export const paths = {
 
         clients: {
             list: "/dashboard/clients",
-            create: "/dashboard/clients/create",
-            detail: (clientId: string) => `/dashboard/clients/${clientId}`,
-            edit: (clientId: string) => `/dashboard/clients/${clientId}/edit`,
         },
 
         items: {
             list: "/dashboard/items",
-            create: "/dashboard/items/create",
-            edit: (itemId: string) => `/dashboard/items/${itemId}/edit`,
         },
 
         subscription: {

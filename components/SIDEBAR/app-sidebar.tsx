@@ -54,7 +54,6 @@ const navMain = [
     url: paths.dashboard.clients.list,
     icon: UsersIcon,
     actions: [
-      { label: "Ajouter un client", url: paths.dashboard.clients.create },
       { label: "Voir tous les clients", url: paths.dashboard.clients.list },
     ],
   },
@@ -63,7 +62,6 @@ const navMain = [
     url: paths.dashboard.items.list,
     icon: PackageIcon,
     actions: [
-      { label: "Ajouter un produit", url: paths.dashboard.items.create },
       { label: "Voir tous les produits", url: paths.dashboard.items.list },
     ],
   },
