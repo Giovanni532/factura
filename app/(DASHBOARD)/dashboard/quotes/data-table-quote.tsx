@@ -309,7 +309,7 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
                     >
                         Devis
                     </motion.h1>
-                    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+                    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                         <Button size="default" onClick={() => router.push(paths.dashboard.quotes.create)}>
                             <Plus className="mr-2 h-4 w-4" />
                             Nouveau devis
