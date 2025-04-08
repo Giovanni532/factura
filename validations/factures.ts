@@ -11,13 +11,14 @@ export const getInvoiceByIdSchema = z.object({
 export const createInvoiceSchema = z.object({
     clientId: z.string(),
     dueDate: z.date(),
+    vatRate: z.number().default(20),
     items: z.array(
         z.object({
             itemId: z.string(),
             quantity: z.number().min(1, "La quantité doit être supérieure à 0"),
             unitPrice: z.number().min(0, "Le prix unitaire doit être supérieur ou égal à 0"),
         })
-    ),
+    ).min(1)
 });
 
 export const updateInvoiceSchema = z.object({
@@ -25,6 +26,7 @@ export const updateInvoiceSchema = z.object({
     clientId: z.string(),
     dueDate: z.date(),
     status: z.enum(["PENDING", "PAID", "OVERDUE", "CANCELED"]),
+    vatRate: z.number().default(20),
     items: z.array(
         z.object({
             id: z.string().optional(),
@@ -32,7 +34,7 @@ export const updateInvoiceSchema = z.object({
             quantity: z.number().min(1, "La quantité doit être supérieure à 0"),
             unitPrice: z.number().min(0, "Le prix unitaire doit être supérieur ou égal à 0"),
         })
-    ),
+    ).min(1)
 });
 
 export const deleteInvoiceSchema = z.object({

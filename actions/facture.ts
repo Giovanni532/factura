@@ -61,7 +61,6 @@ export const getUserInvoices = useMutation(
                     createdAt: 'desc'
                 }
             });
-
             // Transformer les factures au format attendu par le frontend
             const formattedInvoices: Invoice[] = invoices.map(invoice => {
                 // Calculer le montant total payé
@@ -207,8 +206,15 @@ export const createInvoice = useMutation(
                 throw new Error("Client introuvable ou non autorisé");
             }
 
-            // Calculer le total de la facture
-            const total = data.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+            // Calculer le total HT de la facture
+            const totalHT = data.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+
+            // Calculer la TVA (par défaut 20% si non spécifiée)
+            const vatRate = data.vatRate || 20;
+            const vatAmount = (totalHT * vatRate) / 100;
+
+            // Calculer le total TTC
+            const totalTTC = totalHT + vatAmount;
 
             // Créer la facture et ses éléments en une seule transaction
             const invoice = await prisma.invoice.create({
@@ -216,7 +222,10 @@ export const createInvoice = useMutation(
                     clientId: data.clientId,
                     userId,
                     dueDate: data.dueDate,
-                    total,
+                    total: totalTTC,
+                    totalHT: totalHT,
+                    vatRate: vatRate,
+                    vatAmount: vatAmount,
                     status: "PENDING",
                     invoiceItems: {
                         create: data.items.map(item => ({
@@ -235,7 +244,9 @@ export const createInvoice = useMutation(
                 success: true,
                 invoice: {
                     id: invoice.id,
-                    total
+                    totalHT,
+                    vatAmount,
+                    total: totalTTC
                 }
             };
         } catch (error) {
@@ -286,8 +297,15 @@ export const updateInvoice = useMutation(
                 throw new Error("Client introuvable ou non autorisé");
             }
 
-            // Calculer le nouveau total
-            const total = data.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+            // Calculer le nouveau total HT
+            const totalHT = data.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+
+            // Calculer la TVA (utiliser la valeur existante ou par défaut 20%)
+            const vatRate = data.vatRate !== undefined ? data.vatRate : (existingInvoice.vatRate || 20);
+            const vatAmount = (totalHT * vatRate) / 100;
+
+            // Calculer le total TTC
+            const totalTTC = totalHT + vatAmount;
 
             // Créer un ensemble des IDs d'éléments existants
             const existingItemIds = new Set(existingInvoice.invoiceItems.map(item => item.id));
@@ -307,7 +325,10 @@ export const updateInvoice = useMutation(
                         clientId: data.clientId,
                         dueDate: data.dueDate,
                         status: data.status,
-                        total,
+                        total: totalTTC,
+                        totalHT: totalHT,
+                        vatRate: vatRate,
+                        vatAmount: vatAmount,
                         updatedAt: new Date()
                     }
                 });
@@ -350,7 +371,9 @@ export const updateInvoice = useMutation(
                 success: true,
                 invoice: {
                     id: data.id,
-                    total
+                    totalHT,
+                    vatAmount,
+                    total: totalTTC
                 }
             };
         } catch (error) {

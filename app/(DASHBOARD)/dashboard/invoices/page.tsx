@@ -1,14 +1,10 @@
 import { getUser } from "@/actions/auth"
 import { getUserInvoices } from "@/actions/facture"
 import DataTableInvoice from "./data-table-invoice"
-import { redirect } from "next/navigation"
 
 export default async function InvoicesPage() {
     // Vérifier que l'utilisateur est connecté
     const user = await getUser()
-    if (!user) {
-        redirect("/login")
-    }
 
     // Récupérer les factures de l'utilisateur
     const userId = user.id as string

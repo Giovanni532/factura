@@ -113,6 +113,7 @@ const formSchema = z.object({
         required_error: "Veuillez sélectionner une date d'échéance",
     }),
     status: z.string().default("pending"),
+    vatRate: z.number().default(20),
     invoiceItems: z.array(
         z.object({
             id: z.string().optional(),
@@ -145,6 +146,9 @@ export default function InvoiceForm({
     const router = useRouter()
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [total, setTotal] = useState(0)
+    const [vatAmount, setVatAmount] = useState(0)
+    const [totalTTC, setTotalTTC] = useState(0)
+    const [vatRate, setVatRate] = useState(20) // Taux de TVA par défaut: 20%
     const isEditing = !!invoice
 
     // Initialisation du formulaire
@@ -155,6 +159,7 @@ export default function InvoiceForm({
             clientId: invoice?.clientId || "",
             dueDate: invoice?.dueDate ? new Date(invoice.dueDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 jours par défaut
             status: invoice?.status || "pending",
+            vatRate: 20, // Par défaut 20%
             invoiceItems: invoice?.invoiceItems.length
                 ? invoice.invoiceItems
                 : [{ itemId: "", quantity: 1, unitPrice: 0 }],
@@ -165,7 +170,14 @@ export default function InvoiceForm({
     const calculateTotal = () => {
         const items = form.getValues("invoiceItems")
         const newTotal = items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0)
+        const newVatRate = form.getValues("vatRate")
+        const newVatAmount = (newTotal * newVatRate) / 100
+        const newTotalTTC = newTotal + newVatAmount
+
         setTotal(newTotal)
+        setVatRate(newVatRate)
+        setVatAmount(newVatAmount)
+        setTotalTTC(newTotalTTC)
     }
 
     // Mettre à jour le total lorsque les items changent
@@ -220,6 +232,7 @@ export default function InvoiceForm({
                     clientId: values.clientId,
                     status: values.status as "PENDING" | "PAID" | "OVERDUE" | "CANCELED",
                     dueDate: values.dueDate,
+                    vatRate: values.vatRate,
                     items: values.invoiceItems
                 })
             } else {
@@ -227,6 +240,7 @@ export default function InvoiceForm({
                 await createInvoice({
                     clientId: values.clientId,
                     dueDate: values.dueDate,
+                    vatRate: values.vatRate,
                     items: values.invoiceItems
                 })
             }
@@ -360,6 +374,35 @@ export default function InvoiceForm({
                                                 </Popover>
                                                 <FormDescription>
                                                     Date limite de paiement
+                                                </FormDescription>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    {/* Taux de TVA */}
+                                    <FormField
+                                        control={form.control}
+                                        name="vatRate"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-col">
+                                                <FormLabel>Taux de TVA (%)</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        type="number"
+                                                        min={0}
+                                                        max={100}
+                                                        step={0.5}
+                                                        {...field}
+                                                        onChange={(e) => {
+                                                            field.onChange(Number(e.target.value));
+                                                            calculateTotal(); // Recalculer les totaux quand le taux change
+                                                        }}
+                                                        disabled={isSubmitting}
+                                                    />
+                                                </FormControl>
+                                                <FormDescription>
+                                                    Taux de TVA applicable à cette facture
                                                 </FormDescription>
                                                 <FormMessage />
                                             </FormItem>
@@ -602,12 +645,12 @@ export default function InvoiceForm({
                                                 <span>{formatAmount(total)}</span>
                                             </div>
                                             <div className="flex justify-between text-sm text-muted-foreground mb-2">
-                                                <span>TVA (20%):</span>
-                                                <span>{formatAmount(total * 0.2)}</span>
+                                                <span>TVA ({vatRate}%):</span>
+                                                <span>{formatAmount(vatAmount)}</span>
                                             </div>
                                             <div className="flex justify-between font-bold text-lg pt-2 border-t">
                                                 <span>Total TTC:</span>
-                                                <span>{formatAmount(total * 1.2)}</span>
+                                                <span>{formatAmount(totalTTC)}</span>
                                             </div>
                                         </div>
                                     </div>

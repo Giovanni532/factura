@@ -161,13 +161,16 @@ model QuoteItem {
 
 model Invoice {
   id            String        @id @default(cuid())
-  client        Client        @relation(fields: [clientId], references: [id])
+  client        Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
   clientId      String
-  user          User          @relation(fields: [userId], references: [id])
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        String
   status        InvoiceStatus @default(PENDING)
   dueDate       DateTime
   total         Float
+  totalHT       Float         @default(0) // Total hors taxe
+  vatRate       Float         @default(20) // Taux de TVA en pourcentage
+  vatAmount     Float         @default(0) // Montant de la TVA
   invoiceItems  InvoiceItem[]
   payments      Payment[]
   createdFrom   Quote?        @relation("ConvertedInvoice", fields: [createdFromId], references: [id])
@@ -175,6 +178,9 @@ model Invoice {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   Quote         Quote[]
+
+  @@index([clientId])
+  @@index([userId])
 }
 
 model InvoiceItem {
