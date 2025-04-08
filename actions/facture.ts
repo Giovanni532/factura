@@ -139,7 +139,7 @@ export const getInvoiceById = useMutation(
                 description: item.item.description,
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,
-                total: item.quantity * item.unitPrice
+                total: item.quantity * item.unitPrice,
             }));
 
             // Formater les paiements
@@ -179,7 +179,11 @@ export const getInvoiceById = useMutation(
                         logoUrl: business.logoUrl
                     } : null,
                     items: formattedItems,
-                    payments: formattedPayments
+                    payments: formattedPayments,
+                    vatRate: invoice.vatRate,
+                    vatAmount: invoice.vatAmount,
+                    totalHT: invoice.totalHT,
+                    totalTTC: invoice.total,
                 }
             };
         } catch (error) {
