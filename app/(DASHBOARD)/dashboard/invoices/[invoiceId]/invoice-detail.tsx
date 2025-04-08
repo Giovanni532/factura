@@ -1,9 +1,9 @@
 "use client"
 
-import React, { useState } from 'react'
-import { formatDistanceToNow, format } from 'date-fns'
+import React, { useState, useEffect, useCallback } from 'react'
+import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import {
@@ -23,7 +23,6 @@ import {
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import {
     Dialog,
@@ -85,6 +84,7 @@ interface InvoiceDetailProps {
 
 export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
     const router = useRouter()
+    const searchParams = useSearchParams()
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
     const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
@@ -155,6 +155,7 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
         }
     }
 
+    // Fonction pour générer le PDF
     const handleGeneratePdf = async () => {
         try {
             setIsGeneratingPdf(true)
@@ -170,6 +171,36 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
             setIsGeneratingPdf(false)
         }
     }
+
+    // Fonction séparée pour le téléchargement automatique via URL
+    const handleAutomaticPdfDownload = async () => {
+        try {
+            setIsGeneratingPdf(true)
+
+            // Créer l'instance du générateur de PDF et générer le document
+            const pdfGenerator = new InvoicePdfGenerator(invoice, formatCurrency)
+            await pdfGenerator.generateAndDownload()
+
+            // Nettoyer l'URL après le téléchargement
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+
+            toast.success("PDF généré avec succès")
+        } catch (error: any) {
+            toast.error(error.message || "Erreur lors de la génération du PDF")
+        } finally {
+            setIsGeneratingPdf(false)
+        }
+    }
+
+    // Effet pour détecter le paramètre d'URL download=true
+    useEffect(() => {
+        // Vérifier si le paramètre download=true est présent et déclencher uniquement 
+        // le téléchargement automatique, pas la fonction de clic sur bouton
+        if (searchParams?.get('download') === 'true') {
+            handleAutomaticPdfDownload();
+        }
+    }, [searchParams, invoice]);
 
     const handleDelete = async () => {
         try {
@@ -416,7 +447,7 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                             <div className="w-full max-w-xs space-y-2">
                                 <div className="flex justify-between py-1">
                                     <span className="text-muted-foreground">Sous-total HT</span>
-                                    <span className="font-medium">{formatCurrency(invoice.totalHT || 0)}</span>
+                                    <span className="font-medium">{formatCurrency(invoice.totalHT || 0)} {invoice.currency}</span>
                                 </div>
                                 <div className="flex justify-between py-1">
                                     <span className="text-muted-foreground">TVA ({invoice.vatRate || 20}%)</span>

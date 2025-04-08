@@ -57,6 +57,10 @@ import {
 } from 'lucide-react'
 import { Invoice, deleteInvoice } from '@/actions/facture'
 import { paths } from '@/paths'
+import { InvoicePdfGenerator } from '@/components/invoices/invoice-pdf-generator'
+import { formatCurrency } from '@/lib/utils'
+import { toast } from 'sonner'
+import { getInvoiceById } from '@/actions/facture'
 
 // Mapping des statuts pour l'affichage
 const statusLabels: Record<string, { label: string, color: string }> = {
@@ -205,19 +209,21 @@ export default function DataTableInvoice({ invoices: initialInvoices }: { invoic
     };
 
     // Gérer le téléchargement du PDF
-    const handleDownloadPdf = async (id: string) => {
+    const handleDownloadPdf = (id: string) => {
         try {
             setDownloadingPdfId(id);
-            const response = await downloadInvoicePdf({ id });
 
-            if (response?.data?.success && response?.data?.pdfUrl) {
-                // Dans un environnement réel, nous redirigerions vers l'URL du PDF ou le téléchargerions
-                console.log("Téléchargement du PDF:", response.data.pdfUrl);
-                // window.open(response.pdfUrl, '_blank');
-            }
+            // Rediriger vers la page de détail avec un paramètre pour télécharger le PDF
+            // Cette approche utilise le composant invoice-detail.tsx qui a déjà la logique de génération de PDF
+            window.open(`${paths.dashboard.invoices.detail(id)}?download=true`, '_blank');
+
+            // Réinitialiser l'état après un petit délai
+            setTimeout(() => {
+                setDownloadingPdfId(null);
+            }, 1000);
         } catch (error) {
-            console.error("Erreur lors du téléchargement du PDF:", error);
-        } finally {
+            console.error("Erreur lors de l'ouverture du PDF:", error);
+            toast.error("Erreur lors de l'ouverture du PDF");
             setDownloadingPdfId(null);
         }
     };
