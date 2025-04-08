@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { formatDistanceToNow, format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { useRouter } from 'next/navigation'
@@ -34,7 +34,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog'
-import { downloadInvoicePdf, deleteInvoice, addPayment, deletePayment } from '@/actions/facture'
+import { downloadInvoicePdf, deleteInvoice, addPayment, deletePayment, duplicateInvoice } from '@/actions/facture'
 import {
     AlertDialog,
     AlertDialogAction,
@@ -87,7 +87,10 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
     const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
+    const [isDuplicating, setIsDuplicating] = useState(false)
+    const [isPrinting, setIsPrinting] = useState(false)
     const [deletingPaymentId, setDeletingPaymentId] = useState<string | null>(null)
+    const iframeRef = useRef<HTMLIFrameElement>(null)
 
     const form = useForm<PaymentFormData>({
         resolver: zodResolver(paymentSchema),
@@ -133,12 +136,87 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
         }
     }
 
+    const handleDuplicate = async () => {
+        try {
+            setIsDuplicating(true)
+            const result = await duplicateInvoice({ id: invoice.id })
+
+            if (result?.data?.success) {
+                toast.success("Facture dupliquée avec succès")
+                // Rediriger vers la nouvelle facture
+                router.push(`/dashboard/invoices/${result?.data?.invoice?.id}`)
+            } else {
+                toast.error("Erreur lors de la duplication de la facture")
+            }
+        } catch (error: any) {
+            toast.error(error.message || "Erreur lors de la duplication de la facture")
+        } finally {
+            setIsDuplicating(false)
+        }
+    }
+
+    const handlePrint = async () => {
+        try {
+            setIsPrinting(true)
+            const result = await downloadInvoicePdf({ id: invoice.id })
+
+
+            if (result?.data?.success) {
+                // Option 1: Téléchargement direct si l'API retourne un blob ou une URL de fichier
+                if (result.data.pdfUrl) {
+                    // Créer un iframe invisible pour charger et imprimer le PDF
+                    if (iframeRef.current) {
+                        iframeRef.current.src = result.data.pdfUrl
+                        iframeRef.current.onload = () => {
+                            try {
+                                iframeRef.current?.contentWindow?.print()
+                            } catch (e) {
+                                // Fallback: ouvrir dans un nouvel onglet si l'impression directe échoue
+                                window.open(result?.data?.pdfUrl, '_blank')
+                            }
+                            setIsPrinting(false)
+                        }
+                    } else {
+                        // Fallback: ouvrir dans un nouvel onglet
+                        window.open(result.data.pdfUrl, '_blank')
+                        setIsPrinting(false)
+                    }
+
+                    toast.success("Facture prête pour impression")
+                } else {
+                    toast.error("Erreur lors de la génération du PDF")
+                    setIsPrinting(false)
+                }
+            } else {
+                toast.error(result?.data?.message || "Erreur lors de la génération du PDF")
+                setIsPrinting(false)
+            }
+        } catch (error: any) {
+            toast.error(error.message || "Erreur lors de l'impression de la facture")
+            setIsPrinting(false)
+        }
+    }
+
     const handleDownload = async () => {
-        toast.promise(downloadInvoicePdf({ id: invoice.id }), {
-            loading: "Génération du PDF en cours...",
-            success: "PDF généré avec succès!",
-            error: "Erreur lors de la génération du PDF"
-        })
+        try {
+            const result = await downloadInvoicePdf({ id: invoice.id })
+
+            if (result?.data?.success && result?.data?.pdfUrl) {
+                // Créer un élément a temporaire pour le téléchargement
+                const a = document.createElement('a')
+                a.href = result?.data?.pdfUrl
+                a.download = result?.data?.fileName || `Facture_${invoice.number}.pdf`
+                document.body.appendChild(a)
+                a.click()
+                document.body.removeChild(a)
+
+                toast.success("Téléchargement du PDF réussi")
+            } else {
+                toast.error(result?.data?.message || "Erreur lors du téléchargement du PDF")
+            }
+        } catch (error: any) {
+            toast.error(error.message || "Erreur lors du téléchargement de la facture")
+        }
     }
 
     const handleDelete = async () => {
@@ -253,17 +331,20 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                             <Button
                                 variant="outline"
                                 size="sm"
+                                onClick={handleDuplicate}
+                                disabled={isDuplicating}
                             >
                                 <Copy className="h-4 w-4 mr-2" />
-                                Dupliquer
+                                {isDuplicating ? "Duplication..." : "Dupliquer"}
                             </Button>
                             <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={handleDownload}
+                                onClick={handlePrint}
+                                disabled={isPrinting}
                             >
                                 <Printer className="h-4 w-4 mr-2" />
-                                Imprimer
+                                {isPrinting ? "Préparation..." : "Imprimer"}
                             </Button>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -281,6 +362,10 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                                     <DropdownMenuItem onClick={() => setIsPaymentDialogOpen(true)} disabled={invoice.isPaid || invoice.status === "CANCELED"}>
                                         <Plus className="h-4 w-4 mr-2" />
                                         Ajouter un paiement
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={handleDownload}>
+                                        <Download className="h-4 w-4 mr-2" />
+                                        Télécharger PDF
                                     </DropdownMenuItem>
                                     <DropdownMenuItem>
                                         <Send className="h-4 w-4 mr-2" />
@@ -454,6 +539,13 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                     )}
                 </motion.div>
             </motion.div>
+
+            {/* IFrame invisible pour l'impression */}
+            <iframe
+                ref={iframeRef}
+                style={{ display: 'none' }}
+                title="Impression de facture"
+            />
 
             {/* Delete confirmation dialog */}
             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

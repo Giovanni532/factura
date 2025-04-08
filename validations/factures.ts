@@ -21,6 +21,10 @@ export const createInvoiceSchema = z.object({
     ).min(1)
 });
 
+export const duplicateInvoiceSchema = z.object({
+    id: z.string(),
+});
+
 export const updateInvoiceSchema = z.object({
     id: z.string(),
     clientId: z.string(),

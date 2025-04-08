@@ -10,7 +10,8 @@ import {
     updateInvoiceSchema,
     createInvoiceSchema,
     addPaymentSchema,
-    deletePaymentSchema
+    deletePaymentSchema,
+    duplicateInvoiceSchema
 } from "@/validations/factures";
 
 // Type pour les factures formatées pour le frontend
@@ -556,6 +557,70 @@ export const deletePayment = useMutation(
     }
 );
 
+// Server action pour dupliquer une facture existante
+export const duplicateInvoice = useMutation(
+    duplicateInvoiceSchema,
+    async ({ id }, { userId }) => {
+        try {
+            // Récupérer la facture source avec tous ses éléments
+            const sourceInvoice = await prisma.invoice.findUnique({
+                where: {
+                    id,
+                    userId
+                },
+                include: {
+                    invoiceItems: true
+                }
+            });
+
+            if (!sourceInvoice) {
+                throw new Error("Facture source introuvable ou non autorisée");
+            }
+
+            // Créer une nouvelle facture avec les mêmes données mais un statut PENDING
+            const newInvoice = await prisma.invoice.create({
+                data: {
+                    clientId: sourceInvoice.clientId,
+                    userId,
+                    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Date d'échéance par défaut à 30 jours
+                    total: sourceInvoice.total,
+                    totalHT: sourceInvoice.totalHT,
+                    vatRate: sourceInvoice.vatRate,
+                    vatAmount: sourceInvoice.vatAmount,
+                    status: "PENDING",
+                    invoiceItems: {
+                        create: sourceInvoice.invoiceItems.map(item => ({
+                            itemId: item.itemId,
+                            quantity: item.quantity,
+                            unitPrice: item.unitPrice
+                        }))
+                    }
+                },
+                include: {
+                    invoiceItems: true,
+                    client: true
+                }
+            });
+
+            return {
+                success: true,
+                invoice: {
+                    id: newInvoice.id,
+                    number: `FAC-${newInvoice.id.slice(0, 8)}`,
+                    clientName: newInvoice.client.name,
+                    createdAt: newInvoice.createdAt,
+                    totalHT: newInvoice.totalHT,
+                    vatAmount: newInvoice.vatAmount,
+                    total: newInvoice.total
+                }
+            };
+        } catch (error) {
+            console.error("Erreur lors de la duplication de la facture:", error);
+            throw error;
+        }
+    }
+);
+
 // Server action pour générer et télécharger une facture en PDF
 export const downloadInvoicePdf = useMutation(
     downloadInvoicePdfSchema,
@@ -574,7 +639,12 @@ export const downloadInvoicePdf = useMutation(
                             item: true
                         }
                     },
-                    payments: true
+                    payments: true,
+                    user: {
+                        include: {
+                            businesses: true
+                        }
+                    }
                 }
             });
 
@@ -583,12 +653,19 @@ export const downloadInvoicePdf = useMutation(
             }
 
             // Dans une vraie implémentation, on générerait un PDF ici
-            // Pour cet exemple, on retourne juste un message de succès
+            // et on retournerait un URL de téléchargement ou un Blob
+
+            // Pour cet exemple, on simule une génération de PDF
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Simule le temps de génération
+
+            // URL de l'API pour télécharger le PDF (cette URL devrait être implémentée côté serveur)
+            const pdfUrl = `/api/invoices/${id}/pdf?timestamp=${Date.now()}`;
 
             return {
                 success: true,
                 message: "PDF généré avec succès",
-                pdfUrl: `/api/invoices/${id}/pdf` // URL simulée
+                pdfUrl,
+                fileName: `Facture_${invoice.id.slice(0, 8)}.pdf`
             };
         } catch (error) {
             console.error("Erreur lors de la génération du PDF:", error);
