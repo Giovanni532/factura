@@ -67,6 +67,7 @@ import {
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { paths } from '@/paths'
 
 const paymentSchema = z.object({
     amount: z.string().refine(val => !isNaN(Number(val)) && Number(val) > 0, {
@@ -144,7 +145,7 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
             if (result?.data?.success) {
                 toast.success("Facture dupliquée avec succès")
                 // Rediriger vers la nouvelle facture
-                router.push(`/dashboard/invoices/${result?.data?.invoice?.id}`)
+                router.push(paths.dashboard.invoices.detail(result?.data?.invoice?.id))
             } else {
                 toast.error("Erreur lors de la duplication de la facture")
             }
@@ -159,7 +160,6 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
         try {
             setIsPrinting(true)
             const result = await downloadInvoicePdf({ id: invoice.id })
-
 
             if (result?.data?.success) {
                 // Option 1: Téléchargement direct si l'API retourne un blob ou une URL de fichier
@@ -224,7 +224,7 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
             setIsDeleting(true)
             await deleteInvoice({ id: invoice.id })
             toast.success("Facture supprimée avec succès!")
-            router.push("/dashboard/invoices")
+            router.push(paths.dashboard.invoices.list)
         } catch (error: any) {
             toast.error(error.message || "Erreur lors de la suppression de la facture")
         } finally {
@@ -297,7 +297,7 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                     <Button
                         variant="ghost"
                         className="pl-0 flex items-center gap-2 text-foreground"
-                        onClick={() => router.push("/dashboard/invoices")}
+                        onClick={() => router.push(paths.dashboard.invoices.list)}
                     >
                         <ArrowLeft className="h-4 w-4" />
                         Retour aux factures
@@ -323,7 +323,7 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                             <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => router.push(`/dashboard/invoices/${invoice.id}/edit`)}
+                                onClick={() => router.push(paths.dashboard.invoices.edit(invoice.id))}
                             >
                                 <Pencil className="h-4 w-4 mr-2" />
                                 Modifier
