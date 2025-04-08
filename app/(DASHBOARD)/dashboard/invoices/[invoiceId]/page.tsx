@@ -1,14 +1,13 @@
 import React from 'react'
 import { getInvoiceById } from '@/actions/facture'
-import { getUser } from '@/actions/auth'
 import InvoiceDetail from './invoice-detail'
 
-export default async function InvoiceDetailPage({ params }: { params: { invoiceId: string } }) {
+export default async function InvoiceDetailPage({ params }: { params: Promise<{ invoiceId: string }> }) {
     // Récupérer l'utilisateur connecté
-    const user = await getUser()
+    const { invoiceId } = await params
 
     // Récupérer les détails de la facture
-    const response = await getInvoiceById({ id: params.invoiceId })
+    const response = await getInvoiceById({ id: invoiceId })
 
     const invoice = response?.data?.invoice
 

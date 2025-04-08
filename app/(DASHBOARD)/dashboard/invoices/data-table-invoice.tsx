@@ -55,7 +55,7 @@ import {
     ChevronLeft,
     ChevronRight
 } from 'lucide-react'
-import { Invoice, deleteInvoice, downloadInvoicePdf } from '@/actions/facture'
+import { Invoice, deleteInvoice } from '@/actions/facture'
 import { paths } from '@/paths'
 
 // Mapping des statuts pour l'affichage
