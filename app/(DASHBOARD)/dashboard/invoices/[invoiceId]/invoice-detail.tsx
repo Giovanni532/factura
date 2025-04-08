@@ -83,6 +83,7 @@ interface InvoiceDetailProps {
 }
 
 export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
+    console.log(invoice)
     const router = useRouter()
     const searchParams = useSearchParams()
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
@@ -369,11 +370,10 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                             {invoice.client.address && (
                                 <p>
                                     {invoice.client.address}
-                                    {invoice.client.city && `, ${invoice.client.city}`}
                                 </p>
                             )}
                             {invoice.client.postalCode && invoice.client.country && (
-                                <p>{invoice.client.postalCode}, {invoice.client.country}</p>
+                                <p>{invoice.client.postalCode}, {invoice.client.city}, {invoice.client.country}</p>
                             )}
                         </div>
 
@@ -384,9 +384,8 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                                 {invoice.business.email && <p>{invoice.business.email}</p>}
                                 <p>
                                     {invoice.business.address}
-                                    {invoice.business.city && `, ${invoice.business.city}`}
                                 </p>
-                                <p>{invoice.business.postalCode}, {invoice.business.country}</p>
+                                <p>{invoice.business.postalCode}, {invoice.business.city}, {invoice.business.country}</p>
                                 {invoice.business.taxId && <p>TVA: {invoice.business.taxId}</p>}
                             </div>
                         )}

@@ -168,7 +168,10 @@ export const getInvoiceById = useMutation(
                         email: invoice.client.email,
                         phone: invoice.client.phone,
                         company: invoice.client.company,
-                        address: invoice.client.address
+                        address: invoice.client.address,
+                        postalCode: invoice.client.postalCode,
+                        city: invoice.client.city,
+                        country: invoice.client.country
                     },
                     business: business ? {
                         name: business.name,
