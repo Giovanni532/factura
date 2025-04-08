@@ -10,6 +10,9 @@ export const createClientSchema = z.object({
     phone: z.string().optional(),
     company: z.string().optional(),
     address: z.string().optional(),
+    city: z.string().optional(),
+    postalCode: z.string().optional(),
+    country: z.string().optional(),
 });
 
 export const updateClientSchema = z.object({
@@ -19,6 +22,9 @@ export const updateClientSchema = z.object({
     phone: z.string().optional(),
     company: z.string().optional(),
     address: z.string().optional(),
+    city: z.string().optional(),
+    postalCode: z.string().optional(),
+    country: z.string().optional(),
 });
 
 export const deleteClientSchema = z.object({

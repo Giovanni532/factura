@@ -22,8 +22,7 @@ import { CreateClientDialog } from './create-client-dialog'
 import { EditClientDialog } from './edit-client-dialog'
 import { Input } from '@/components/ui/input'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Search } from 'lucide-react'
 
 interface ClientTableProps {
     clients: Client[]
@@ -115,6 +114,9 @@ export default function ClientTable({ clients }: ClientTableProps) {
                                                 <TableHead>Email</TableHead>
                                                 <TableHead>Entreprise</TableHead>
                                                 <TableHead>Téléphone</TableHead>
+                                                <TableHead>Ville</TableHead>
+                                                <TableHead>Code postal</TableHead>
+                                                <TableHead>Pays</TableHead>
                                                 <TableHead className="text-right">Actions</TableHead>
                                             </TableRow>
                                         </TableHeader>
@@ -131,6 +133,9 @@ export default function ClientTable({ clients }: ClientTableProps) {
                                                     <TableCell>{client.email}</TableCell>
                                                     <TableCell>{client.company || "-"}</TableCell>
                                                     <TableCell>{client.phone || "-"}</TableCell>
+                                                    <TableCell>{client.city || "-"}</TableCell>
+                                                    <TableCell>{client.postalCode || "-"}</TableCell>
+                                                    <TableCell>{client.country || "-"}</TableCell>
                                                     <TableCell className="text-right">
                                                         <div className="flex justify-end gap-2">
                                                             <EditClientDialog client={client} />

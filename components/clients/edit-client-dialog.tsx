@@ -30,6 +30,9 @@ const formSchema = z.object({
     phone: z.string().optional(),
     company: z.string().optional(),
     address: z.string().optional(),
+    city: z.string().optional(),
+    postalCode: z.string().optional(),
+    country: z.string().optional(),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -52,6 +55,9 @@ export function EditClientDialog({ client }: EditClientDialogProps) {
             phone: client.phone || '',
             company: client.company || '',
             address: client.address || '',
+            city: client.city || '',
+            postalCode: client.postalCode || '',
+            country: client.country || '',
         },
     })
 
@@ -64,6 +70,9 @@ export function EditClientDialog({ client }: EditClientDialogProps) {
             phone: client.phone || '',
             company: client.company || '',
             address: client.address || '',
+            city: client.city || '',
+            postalCode: client.postalCode || '',
+            country: client.country || '',
         })
     }, [client, form])
 
@@ -80,41 +89,6 @@ export function EditClientDialog({ client }: EditClientDialogProps) {
         }
     }
 
-    const formFields = [
-        {
-            id: "name",
-            label: "Nom*",
-            type: "text",
-            required: true,
-            error: form.formState.errors.name?.message
-        },
-        {
-            id: "email",
-            label: "Email*",
-            type: "email",
-            required: true,
-            error: form.formState.errors.email?.message
-        },
-        {
-            id: "company",
-            label: "Entreprise",
-            type: "text",
-            required: false
-        },
-        {
-            id: "phone",
-            label: "Téléphone",
-            type: "text",
-            required: false
-        },
-        {
-            id: "address",
-            label: "Adresse",
-            type: "text",
-            required: false
-        }
-    ];
-
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -125,7 +99,7 @@ export function EditClientDialog({ client }: EditClientDialogProps) {
                     </Button>
                 </motion.div>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[600px] mx-auto">
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -138,37 +112,101 @@ export function EditClientDialog({ client }: EditClientDialogProps) {
                                 Modifiez les informations du client ci-dessous.
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                            {formFields.map((field, index) => (
-                                <motion.div
-                                    key={field.id}
-                                    className="grid grid-cols-4 items-center gap-4"
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.05 }}
-                                >
-                                    <Label htmlFor={field.id} className="text-right">
-                                        {field.label}
-                                    </Label>
+
+                        <div className="py-4 space-y-4">
+                            {/* Informations principales */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="name">Nom*</Label>
                                     <Input
-                                        id={field.id}
-                                        type={field.type}
-                                        className="col-span-3"
-                                        {...form.register(field.id as any)}
-                                        aria-invalid={field.error ? true : false}
+                                        id="name"
+                                        type="text"
+                                        {...form.register("name")}
+                                        aria-invalid={form.formState.errors.name ? true : false}
                                     />
-                                    {field.error && (
-                                        <motion.p
-                                            className="col-span-3 col-start-2 text-sm text-destructive"
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                        >
-                                            {field.error}
-                                        </motion.p>
+                                    {form.formState.errors.name && (
+                                        <p className="text-sm text-destructive">
+                                            {form.formState.errors.name.message}
+                                        </p>
                                     )}
-                                </motion.div>
-                            ))}
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="email">Email*</Label>
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        {...form.register("email")}
+                                        aria-invalid={form.formState.errors.email ? true : false}
+                                    />
+                                    {form.formState.errors.email && (
+                                        <p className="text-sm text-destructive">
+                                            {form.formState.errors.email.message}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Coordonnées */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="company">Entreprise</Label>
+                                    <Input
+                                        id="company"
+                                        type="text"
+                                        {...form.register("company")}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="phone">Téléphone</Label>
+                                    <Input
+                                        id="phone"
+                                        type="text"
+                                        {...form.register("phone")}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Adresse */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="address">Adresse</Label>
+                                    <Input
+                                        id="address"
+                                        type="text"
+                                        {...form.register("address")}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="city">Ville</Label>
+                                    <Input
+                                        id="city"
+                                        type="text"
+                                        {...form.register("city")}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Code postal et pays */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="postalCode">Code postal</Label>
+                                    <Input
+                                        id="postalCode"
+                                        type="text"
+                                        {...form.register("postalCode")}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="country">Pays</Label>
+                                    <Input
+                                        id="country"
+                                        type="text"
+                                        {...form.register("country")}
+                                    />
+                                </div>
+                            </div>
                         </div>
+
                         <DialogFooter>
                             <motion.div
                                 whileHover={{ scale: 1.03 }}
