@@ -83,7 +83,6 @@ interface InvoiceDetailProps {
 }
 
 export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
-    console.log(invoice)
     const router = useRouter()
     const searchParams = useSearchParams()
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
