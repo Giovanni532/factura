@@ -41,6 +41,15 @@ const navMain = [
     ],
   },
   {
+    title: "Factures",
+    url: paths.dashboard.invoices.list,
+    icon: FileIcon,
+    actions: [
+      { label: "Créer une facture", url: paths.dashboard.invoices.create },
+      { label: "Voir toutes les factures", url: paths.dashboard.invoices.list },
+    ],
+  },
+  {
     title: "Clients",
     url: paths.dashboard.clients.list,
     icon: UsersIcon,
