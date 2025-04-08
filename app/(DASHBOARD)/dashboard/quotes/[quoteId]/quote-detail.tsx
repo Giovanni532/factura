@@ -338,7 +338,7 @@ export default function QuoteDetailPage({ quote }: { quote: QuoteDetail }) {
                                     <div className="text-sm">
                                         <div>{quote.client.address.street}</div>
                                         <div>
-                                            {quote.client.address.postalCode} {quote.client.address.city}
+                                            {quote.client.address.postalCode}, {quote.client.address.city}
                                         </div>
                                         <div>{quote.client.address.country}</div>
                                     </div>
