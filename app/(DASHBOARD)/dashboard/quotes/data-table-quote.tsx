@@ -427,7 +427,13 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
                                                                 </Button>
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="end">
-                                                                <DropdownMenuItem className="cursor-pointer" onClick={() => router.push(paths.dashboard.quotes.detail(devis.id))}>
+                                                                <DropdownMenuItem className="cursor-pointer"
+                                                                    onClick={() => {
+                                                                        devis.status === "CONVERTED"
+                                                                            ? router.push(paths.dashboard.invoices.detail(devis.id))
+                                                                            : router.push(paths.dashboard.quotes.detail(devis.id))
+                                                                    }}
+                                                                >
                                                                     <Eye className="mr-2 h-4 w-4" />
                                                                     Voir
                                                                 </DropdownMenuItem>
