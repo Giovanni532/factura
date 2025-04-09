@@ -98,7 +98,7 @@ export default function ItemTable({ items }: ItemTableProps) {
                                 >
                                     {items.length === 0 ? (
                                         <>
-                                            <p className="text-muted-foreground mb-4">Vous n'avez pas encore de produits ou services.</p>
+                                            <p className="text-muted-foreground mb-4">Vous n&apos;avez pas encore de produits ou services.</p>
                                             <CreateProductDialog />
                                         </>
                                     ) : (

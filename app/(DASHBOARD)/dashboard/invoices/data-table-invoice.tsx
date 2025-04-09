@@ -126,7 +126,7 @@ function EmptyState() {
             </div>
             <h3 className="text-lg font-semibold mb-2">Aucune facture trouvée</h3>
             <p className="text-muted-foreground mb-6">
-                Vous n'avez pas encore créé de factures ou aucune facture ne correspond à votre recherche.
+                Vous n&apos;avez pas encore créé de factures ou aucune facture ne correspond à votre recherche.
             </p>
             <Button onClick={() => router.push(paths.dashboard.invoices.create)}>
                 <Plus className="h-4 w-4 mr-2" />

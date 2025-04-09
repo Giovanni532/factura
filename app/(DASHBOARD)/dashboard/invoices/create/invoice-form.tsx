@@ -183,7 +183,7 @@ export default function InvoiceForm({
     useEffect(() => {
         const subscription = form.watch(() => calculateTotal())
         return () => subscription.unsubscribe()
-    }, [form])
+    }, [form, calculateTotal])
 
     // Formater le montant en euros
     const formatAmount = (amount: number) => {
@@ -339,7 +339,7 @@ export default function InvoiceForm({
                                         name="dueDate"
                                         render={({ field }) => (
                                             <FormItem className="flex flex-col">
-                                                <FormLabel>Date d'échéance</FormLabel>
+                                                <FormLabel>Date d&apos;échéance</FormLabel>
                                                 <Popover>
                                                     <PopoverTrigger asChild>
                                                         <FormControl>

@@ -429,9 +429,11 @@ export default function DataTableQuote({ quotes }: DataTableQuoteProps) {
                                                             <DropdownMenuContent align="end">
                                                                 <DropdownMenuItem className="cursor-pointer"
                                                                     onClick={() => {
-                                                                        devis.status === "CONVERTED"
-                                                                            ? router.push(paths.dashboard.invoices.detail(devis.id))
-                                                                            : router.push(paths.dashboard.quotes.detail(devis.id))
+                                                                        if (devis.status === "CONVERTED") {
+                                                                            router.push(paths.dashboard.invoices.detail(devis.id));
+                                                                        } else {
+                                                                            router.push(paths.dashboard.quotes.detail(devis.id));
+                                                                        }
                                                                     }}
                                                                 >
                                                                     <Eye className="mr-2 h-4 w-4" />

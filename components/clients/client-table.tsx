@@ -103,7 +103,7 @@ export default function ClientTable({ clients, initialSearchQuery }: ClientTable
                                 >
                                     {clients.length === 0 ? (
                                         <>
-                                            <p className="text-muted-foreground mb-4">Vous n'avez pas encore de clients.</p>
+                                            <p className="text-muted-foreground mb-4">Vous n&apos;avez pas encore de clients.</p>
                                             <CreateClientDialog />
                                         </>
                                     ) : (

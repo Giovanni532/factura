@@ -54,7 +54,7 @@ export default async function InvoicesPageEdit({ params }: { params: Promise<{ i
             <div className="container mx-auto px-4 py-6 max-w-7xl">
                 <div className="flex flex-col items-center justify-center h-96">
                     <h2 className="text-2xl font-semibold mb-2">Facture introuvable</h2>
-                    <p className="text-gray-600">La facture que vous cherchez n'existe pas.</p>
+                    <p className="text-gray-600">La facture que vous cherchez n&apos;existe pas.</p>
                 </div>
             </div>
         )
