@@ -268,8 +268,7 @@ export default function EditInvoicePage({ invoice, clients, products }: EditInvo
             dueDate,
             status,
             items: items.map(item => ({
-                // Remove client-generated IDs so server treats them as new items
-                id: item.id && !String(item.id).startsWith('new-item') ? item.id : undefined,
+                id: item.id,
                 itemId: item.itemId,
                 quantity: item.quantity,
                 unitPrice: item.unitPrice
@@ -339,6 +338,7 @@ export default function EditInvoicePage({ invoice, clients, products }: EditInvo
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem className="cursor-pointer" value="PENDING">En attente</SelectItem>
+                                            <SelectItem className="cursor-pointer" value="PAID">Payée</SelectItem>
                                             <SelectItem className="cursor-pointer" value="OVERDUE">En retard</SelectItem>
                                             <SelectItem className="cursor-pointer" value="CANCELED">Annulée</SelectItem>
                                         </SelectContent>

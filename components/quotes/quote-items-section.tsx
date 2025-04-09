@@ -86,7 +86,7 @@ export function QuoteItemsSection({ items, errors, onAdd, onUpdate, onRemove, pr
               Ajoutez les produits ou services que vous souhaitez inclure dans ce devis.
             </CardDescription>
           </div>
-          <Button onClick={onAdd} size="sm" className="gap-1">
+          <Button onClick={onAdd} size="sm" className="gap-1" type="button">
             <Plus className="h-4 w-4" />
             Ajouter une ligne
           </Button>
@@ -195,6 +195,7 @@ export function QuoteItemsSection({ items, errors, onAdd, onUpdate, onRemove, pr
                               size="icon"
                               onClick={() => onRemove(index)}
                               disabled={items.length <= 1}
+                              type="button"
                             >
                               <Trash2 className="h-4 w-4" />
                               <span className="sr-only">Supprimer</span>

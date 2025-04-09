@@ -120,7 +120,6 @@ export const getInvoiceById = useMutation(
                     }
                 }
             });
-
             // Si la facture n'existe pas ou n'appartient pas à l'utilisateur
             if (!invoice) {
                 return { invoice: null };
