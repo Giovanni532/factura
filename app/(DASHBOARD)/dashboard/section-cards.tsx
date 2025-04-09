@@ -5,6 +5,7 @@ import { TrendingDownIcon, TrendingUpIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import type { DashboardData } from "@/types/dashboard"
 
 const container = {
   hidden: { opacity: 0 },
@@ -44,7 +45,21 @@ const badgeVariants = {
   },
 }
 
-export function SectionCards() {
+interface SectionCardsProps {
+  data: DashboardData;
+}
+
+export function SectionCards({ data }: SectionCardsProps) {
+  const { cards } = data;
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: 'EUR',
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
   return (
     <motion.div
       variants={container}
@@ -57,18 +72,29 @@ export function SectionCards() {
           <CardHeader className="relative">
             <CardDescription>Revenus générés</CardDescription>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.5 }}>
-              <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">12 500 €</CardTitle>
+              <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
+                {formatCurrency(cards.revenue.total)}
+              </CardTitle>
             </motion.div>
             <motion.div className="absolute right-4 top-4" variants={badgeVariants}>
-              <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
-                <TrendingUpIcon className="size-3" />
-                +12.5%
+              <Badge variant="outline" className={`flex gap-1 rounded-lg text-xs ${cards.revenue.trend >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {cards.revenue.trend >= 0 ? (
+                  <TrendingUpIcon className="size-3" />
+                ) : (
+                  <TrendingDownIcon className="size-3" />
+                )}
+                {cards.revenue.trend >= 0 ? '+' : ''}{cards.revenue.trend}%
               </Badge>
             </motion.div>
           </CardHeader>
           <CardFooter className="flex-col items-start gap-1 text-sm">
             <motion.div className="line-clamp-1 flex gap-2 font-medium" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7, duration: 0.3 }}>
-              Hausse ce mois-ci <TrendingUpIcon className="size-4" />
+              {cards.revenue.trend >= 0 ? 'Hausse' : 'Baisse'} ce mois-ci
+              {cards.revenue.trend >= 0 ? (
+                <TrendingUpIcon className="size-4 text-green-500" />
+              ) : (
+                <TrendingDownIcon className="size-4 text-red-500" />
+              )}
             </motion.div>
             <motion.div className="text-muted-foreground" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 0.3 }}>
               Basé sur les factures payées
@@ -81,21 +107,32 @@ export function SectionCards() {
           <CardHeader className="relative">
             <CardDescription>Nouveaux clients</CardDescription>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.5 }}>
-              <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">32</CardTitle>
+              <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
+                {cards.clients.total}
+              </CardTitle>
             </motion.div>
             <motion.div className="absolute right-4 top-4" variants={badgeVariants}>
-              <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
-                <TrendingDownIcon className="size-3" />
-                -8%
+              <Badge variant="outline" className={`flex gap-1 rounded-lg text-xs ${cards.clients.trend >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {cards.clients.trend >= 0 ? (
+                  <TrendingUpIcon className="size-3" />
+                ) : (
+                  <TrendingDownIcon className="size-3" />
+                )}
+                {cards.clients.trend >= 0 ? '+' : ''}{cards.clients.trend}%
               </Badge>
             </motion.div>
           </CardHeader>
           <CardFooter className="flex-col items-start gap-1 text-sm">
             <motion.div className="line-clamp-1 flex gap-2 font-medium" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7, duration: 0.3 }}>
-              En baisse ce mois-ci <TrendingDownIcon className="size-4" />
+              {cards.clients.trend >= 0 ? 'En hausse' : 'En baisse'} ce mois-ci
+              {cards.clients.trend >= 0 ? (
+                <TrendingUpIcon className="size-4 text-green-500" />
+              ) : (
+                <TrendingDownIcon className="size-4 text-red-500" />
+              )}
             </motion.div>
             <motion.div className="text-muted-foreground" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 0.3 }}>
-              Moins de demandes de devis reçues
+              {cards.clients.trend >= 0 ? 'Plus de' : 'Moins de'} nouveaux clients enregistrés
             </motion.div>
           </CardFooter>
         </Card>
@@ -105,21 +142,32 @@ export function SectionCards() {
           <CardHeader className="relative">
             <CardDescription>Devis envoyés</CardDescription>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.5 }}>
-              <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">84</CardTitle>
+              <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
+                {cards.quotes.total}
+              </CardTitle>
             </motion.div>
             <motion.div className="absolute right-4 top-4" variants={badgeVariants}>
-              <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
-                <TrendingUpIcon className="size-3" />
-                +18%
+              <Badge variant="outline" className={`flex gap-1 rounded-lg text-xs ${cards.quotes.trend >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {cards.quotes.trend >= 0 ? (
+                  <TrendingUpIcon className="size-3" />
+                ) : (
+                  <TrendingDownIcon className="size-3" />
+                )}
+                {cards.quotes.trend >= 0 ? '+' : ''}{cards.quotes.trend}%
               </Badge>
             </motion.div>
           </CardHeader>
           <CardFooter className="flex-col items-start gap-1 text-sm">
             <motion.div className="line-clamp-1 flex gap-2 font-medium" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7, duration: 0.3 }}>
-              Activité en hausse <TrendingUpIcon className="size-4" />
+              Activité {cards.quotes.trend >= 0 ? 'en hausse' : 'en baisse'}
+              {cards.quotes.trend >= 0 ? (
+                <TrendingUpIcon className="size-4 text-green-500" />
+              ) : (
+                <TrendingDownIcon className="size-4 text-red-500" />
+              )}
             </motion.div>
             <motion.div className="text-muted-foreground" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 0.3 }}>
-              Plus de demandes enregistrées
+              {cards.quotes.trend >= 0 ? 'Plus' : 'Moins'} de demandes enregistrées
             </motion.div>
           </CardFooter>
         </Card>
@@ -129,18 +177,29 @@ export function SectionCards() {
           <CardHeader className="relative">
             <CardDescription>Factures impayées</CardDescription>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.5 }}>
-              <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">3 750 €</CardTitle>
+              <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
+                {formatCurrency(cards.unpaidInvoices.total)}
+              </CardTitle>
             </motion.div>
             <motion.div className="absolute right-4 top-4" variants={badgeVariants}>
-              <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
-                <TrendingUpIcon className="size-3" />
-                +5%
+              <Badge variant="outline" className={`flex gap-1 rounded-lg text-xs ${cards.unpaidInvoices.trend <= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {cards.unpaidInvoices.trend <= 0 ? (
+                  <TrendingDownIcon className="size-3" />
+                ) : (
+                  <TrendingUpIcon className="size-3" />
+                )}
+                {cards.unpaidInvoices.trend >= 0 ? '+' : ''}{cards.unpaidInvoices.trend}%
               </Badge>
             </motion.div>
           </CardHeader>
           <CardFooter className="flex-col items-start gap-1 text-sm">
             <motion.div className="line-clamp-1 flex gap-2 font-medium" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7, duration: 0.3 }}>
-              Suivi recommandé <TrendingUpIcon className="size-4" />
+              {cards.unpaidInvoices.trend > 0 ? 'Suivi recommandé' : 'Bonne évolution'}
+              {cards.unpaidInvoices.trend <= 0 ? (
+                <TrendingDownIcon className="size-4 text-green-500" />
+              ) : (
+                <TrendingUpIcon className="size-4 text-red-500" />
+              )}
             </motion.div>
             <motion.div className="text-muted-foreground" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 0.3 }}>
               Paiements en attente à relancer

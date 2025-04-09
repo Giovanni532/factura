@@ -183,7 +183,7 @@ export default function InvoiceForm({
     useEffect(() => {
         const subscription = form.watch(() => calculateTotal())
         return () => subscription.unsubscribe()
-    }, [form, calculateTotal])
+    }, [form])
 
     // Formater le montant en euros
     const formatAmount = (amount: number) => {
@@ -195,11 +195,30 @@ export default function InvoiceForm({
 
     // Ajouter un nouvel item à la facture
     const addInvoiceItem = () => {
-        const currentItems = form.getValues("invoiceItems")
-        form.setValue("invoiceItems", [
-            ...currentItems,
-            { itemId: "", quantity: 1, unitPrice: 0 }
-        ])
+        try {
+            const uniqueId = `temp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+            const currentItems = [...form.getValues("invoiceItems")];
+
+            // Force reset to ensure UI updates
+            form.setValue("invoiceItems", [
+                ...currentItems,
+                {
+                    id: uniqueId,
+                    itemId: "",
+                    quantity: 1,
+                    unitPrice: 0
+                }
+            ], {
+                shouldValidate: false,
+                shouldDirty: true,
+                shouldTouch: true
+            });
+
+            // Make sure the form knows the field is changed
+            form.trigger("invoiceItems");
+        } catch (error) {
+            console.error("Error adding invoice item:", error);
+        }
     }
 
     // Supprimer un item de la facture
@@ -471,9 +490,9 @@ export default function InvoiceForm({
                                             </TableHeader>
                                             <TableBody>
                                                 <AnimatePresence>
-                                                    {form.getValues("invoiceItems").map((_, index) => (
+                                                    {form.watch("invoiceItems").map((item, index) => (
                                                         <motion.tr
-                                                            key={index}
+                                                            key={item.id || `item_${index}`}
                                                             initial={{ opacity: 0, y: 10 }}
                                                             animate={{ opacity: 1, y: 0 }}
                                                             exit={{ opacity: 0, height: 0 }}
@@ -599,8 +618,8 @@ export default function InvoiceForm({
                                                             {/* Total ligne */}
                                                             <TableCell className="text-right font-medium">
                                                                 {formatAmount(
-                                                                    form.getValues(`invoiceItems.${index}.quantity`) *
-                                                                    form.getValues(`invoiceItems.${index}.unitPrice`)
+                                                                    form.watch(`invoiceItems.${index}.quantity`) *
+                                                                    form.watch(`invoiceItems.${index}.unitPrice`)
                                                                 )}
                                                             </TableCell>
 
@@ -611,7 +630,7 @@ export default function InvoiceForm({
                                                                     size="icon"
                                                                     type="button"
                                                                     onClick={() => removeInvoiceItem(index)}
-                                                                    disabled={form.getValues("invoiceItems").length === 1 || isSubmitting}
+                                                                    disabled={form.watch("invoiceItems").length === 1 || isSubmitting}
                                                                     className="text-destructive hover:text-destructive/90"
                                                                 >
                                                                     <Trash2 className="h-4 w-4" />
@@ -628,7 +647,11 @@ export default function InvoiceForm({
                                         <Button
                                             type="button"
                                             variant="outline"
-                                            onClick={addInvoiceItem}
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                addInvoiceItem();
+                                            }}
                                             disabled={isSubmitting}
                                             className="w-full sm:w-auto"
                                         >

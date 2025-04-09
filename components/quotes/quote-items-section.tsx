@@ -86,7 +86,14 @@ export function QuoteItemsSection({ items, errors, onAdd, onUpdate, onRemove, pr
               Ajoutez les produits ou services que vous souhaitez inclure dans ce devis.
             </CardDescription>
           </div>
-          <Button onClick={onAdd} size="sm" className="gap-1" type="button">
+          <Button
+            onClick={(e) => {
+              e.preventDefault();
+              onAdd();
+            }}
+            size="sm"
+            className="gap-1"
+            type="button">
             <Plus className="h-4 w-4" />
             Ajouter une ligne
           </Button>
@@ -116,7 +123,7 @@ export function QuoteItemsSection({ items, errors, onAdd, onUpdate, onRemove, pr
                     ) : (
                       items.map((item, index) => (
                         <motion.tr
-                          key={item.id || `item_${index}`}
+                          key={item.id}
                           variants={rowVariants}
                           initial="hidden"
                           animate="visible"

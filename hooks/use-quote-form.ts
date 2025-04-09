@@ -53,14 +53,14 @@ export function useQuoteForm() {
             quoteItems: [
                 ...prev.quoteItems,
                 {
+                    id: newId,
                     quoteId: "",
-                    id: newId, // ID unique garanti
                     itemId: "",
                     quantity: 1,
                     unitPrice: 0,
                 },
             ],
-        }))
+        }));
     }
 
     // Mettre à jour une ligne de devis

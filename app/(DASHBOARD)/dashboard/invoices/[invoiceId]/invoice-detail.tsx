@@ -200,7 +200,7 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
         if (searchParams?.get('download') === 'true') {
             handleAutomaticPdfDownload();
         }
-    }, [searchParams, invoice, handleAutomaticPdfDownload]);
+    }, [searchParams, invoice]);
 
     const handleDelete = async () => {
         try {
