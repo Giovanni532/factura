@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const getUserInvoicesSchema = z.object({
-    userId: z.string(),
+    userId: z.string().optional(),
 });
 
 export const getInvoiceByIdSchema = z.object({

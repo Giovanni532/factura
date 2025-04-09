@@ -43,9 +43,9 @@ const mapStatus = (status: string): "pending" | "paid" | "overdue" | "canceled" 
 // Server action pour récupérer toutes les factures pour l'utilisateur connecté
 export const getUserInvoices = useMutation(
     getUserInvoicesSchema,
-    async ({ userId }, { userId: authUserId }) => {
+    async ({ }, { userId }) => {
         try {
-            if (userId !== authUserId) {
+            if (!userId) {
                 throw new Error("Vous n'êtes pas autorisé à accéder à ces données");
             }
 

@@ -110,6 +110,7 @@ export default async function QuotesPageEdit({ params }: { params: Promise<{ quo
         <EditDevisPage
             quote={{
                 ...enhancedQuote,
+                invoiceId: quoteData.id || null,
                 note: enhancedQuote.notes || null,
                 validUntil: enhancedQuote.validUntil || null
             }}
