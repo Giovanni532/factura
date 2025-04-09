@@ -1,24 +1,23 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { SearchIcon, Moon, Sun } from "lucide-react"
+import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { usePathname } from "next/navigation"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import Link from "next/link"
 import React from "react"
+import SearchBar from "./search-bar"
 
 export function SiteHeader() {
   const { theme, setTheme } = useTheme()
   const pathname = usePathname()
 
   const breadcrumbs = pathname.split('/').map((path, index) => {
-    const isLast = index === pathname.split('/').length - 1
     const pathLink = `/${pathname.split('/').slice(0, index + 1).join('/')}`
     return (
       <React.Fragment key={path}>
@@ -68,16 +67,7 @@ export function SiteHeader() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
         >
-          <div className="relative hidden md:block">
-            <SearchIcon className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.3 }}>
-              <Input
-                type="search"
-                placeholder="Search..."
-                className="w-[200px] rounded-md pl-8 md:w-[240px] lg:w-[320px]"
-              />
-            </motion.div>
-          </div>
+          <SearchBar />
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
               variant="ghost"
