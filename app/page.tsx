@@ -154,7 +154,7 @@ export default function Home() {
         >
           <h2 className="text-3xl font-bold mb-4">Prêt à optimiser votre gestion administrative ?</h2>
           <p className="text-primary-foreground/80 mb-8 max-w-2xl mx-auto">
-            Rejoignez des milliers d'utilisateurs qui gagnent du temps chaque jour grâce à Factura.
+            Rejoignez des milliers d&apos;utilisateurs qui gagnent du temps chaque jour grâce à Factura.
           </p>
           <Link
             href="/auth/register"
@@ -195,7 +195,7 @@ export default function Home() {
             <h4 className="font-medium mb-4">Légal</h4>
             <ul className="space-y-2">
               <li><Link href="/legal/privacy" className="text-muted-foreground hover:text-foreground transition-colors">Confidentialité</Link></li>
-              <li><Link href="/legal/terms" className="text-muted-foreground hover:text-foreground transition-colors">Conditions d'utilisation</Link></li>
+              <li><Link href="/legal/terms" className="text-muted-foreground hover:text-foreground transition-colors">Conditions d&apos;utilisation</Link></li>
             </ul>
           </div>
         </div>
