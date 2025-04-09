@@ -1,3 +1,10 @@
+// Type d'utilisateur simplifié
+export interface UserInfo {
+    id: string;
+    name?: string | null;
+    email: string;
+}
+
 // Types for dashboard statistics
 export interface StatData {
     total: number;
@@ -28,4 +35,5 @@ export interface DashboardData {
         monthlyRevenue: MonthlyData[];
         invoiceStatus: StatusData[];
     };
+    user: UserInfo;
 } 
