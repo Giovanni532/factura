@@ -88,7 +88,7 @@ export function CreateClientDialog() {
                             {/* Informations principales */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="name">Nom*</Label>
+                                    <Label htmlFor="name">Nom et prénom*</Label>
                                     <Input
                                         id="name"
                                         type="text"

@@ -2,6 +2,21 @@ import { getUser } from "@/actions/auth"
 import { getUserInvoices } from "@/actions/facture"
 import DataTableInvoice from "./data-table-invoice"
 
+export async function generateMetadata() {
+    return {
+        title: "Factures | Factura",
+        description: "Gérer vos factures",
+    }
+}
+
+export async function generateStaticParams() {
+    const response = await getUserInvoices({});
+    if (!response?.data?.invoices) {
+        return [];
+    }
+    return response.data.invoices.map((invoice) => ({ invoiceId: invoice.id }));
+}
+
 export default async function InvoicesPage() {
     // Vérifier que l'utilisateur est connecté
     const user = await getUser()

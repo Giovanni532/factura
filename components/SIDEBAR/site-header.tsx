@@ -8,9 +8,29 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
+import { usePathname } from "next/navigation"
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
+import Link from "next/link"
+import React from "react"
 
 export function SiteHeader() {
   const { theme, setTheme } = useTheme()
+  const pathname = usePathname()
+
+  const breadcrumbs = pathname.split('/').map((path, index) => {
+    const isLast = index === pathname.split('/').length - 1
+    const pathLink = `/${pathname.split('/').slice(0, index + 1).join('/')}`
+    return (
+      <React.Fragment key={path}>
+        {index !== 0 && index !== 1 && <BreadcrumbSeparator />}
+        <BreadcrumbItem>
+          <BreadcrumbLink asChild>
+            <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/${pathLink}`}>{path.charAt(0).toUpperCase() + path.slice(1)}</Link>
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+      </React.Fragment>
+    )
+  })
 
   return (
     <motion.header
@@ -34,7 +54,11 @@ export function SiteHeader() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3, delay: 0.2 }}
           >
-            Documents
+            <Breadcrumb>
+              <BreadcrumbList>
+                {breadcrumbs}
+              </BreadcrumbList>
+            </Breadcrumb>
           </motion.h1>
         </motion.div>
 

@@ -339,7 +339,6 @@ export default function EditInvoicePage({ invoice, clients, products }: EditInvo
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem className="cursor-pointer" value="PENDING">En attente</SelectItem>
-                                            <SelectItem className="cursor-pointer" value="PAID">Payée</SelectItem>
                                             <SelectItem className="cursor-pointer" value="OVERDUE">En retard</SelectItem>
                                             <SelectItem className="cursor-pointer" value="CANCELED">Annulée</SelectItem>
                                         </SelectContent>

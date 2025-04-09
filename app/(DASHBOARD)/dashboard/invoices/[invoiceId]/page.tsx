@@ -1,6 +1,22 @@
 import React from 'react'
-import { getInvoiceById } from '@/actions/facture'
+import { getInvoiceById, getUserInvoices } from '@/actions/facture'
 import InvoiceDetail from './invoice-detail'
+
+export async function generateMetadata({ params }: { params: Promise<{ invoiceId: string }> }) {
+    const { invoiceId } = await params;
+    return {
+        title: `Facture | Factura (${invoiceId})`,
+        description: `Modifier la facture ${invoiceId}`,
+    }
+}
+
+export async function generateStaticParams() {
+    const response = await getUserInvoices({});
+    if (!response?.data?.invoices) {
+        return [];
+    }
+    return response.data.invoices.map((invoice) => ({ invoiceId: invoice.id }));
+}
 
 export default async function InvoiceDetailPage({ params }: { params: Promise<{ invoiceId: string }> }) {
     // Récupérer l'utilisateur connecté
