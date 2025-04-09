@@ -5,10 +5,10 @@ import { InvoiceChart } from '@/components/dashboard/invoice-chart'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { getRevenueStats, getClientStats, getQuoteStats, getUnpaidInvoicesTotal, getMonthlyRevenueData, getInvoiceStatusDistribution } from '@/actions/dashboard'
 import { DashboardData, UserInfo } from '@/types/dashboard'
+import { cache } from 'react'
 
-// Fonction qui récupère toutes les données du dashboard
-async function getDashboardData(): Promise<DashboardData> {
-    // Récupérer toutes les données du dashboard en parallèle
+// Fonction mise en cache qui récupère toutes les données du dashboard
+const getDashboardData = cache(async (): Promise<DashboardData> => {
     const [
         revenueResult,
         clientsResult,
@@ -81,7 +81,9 @@ async function getDashboardData(): Promise<DashboardData> {
     }
 
     return dashboardData;
-}
+});
+
+export const revalidate = 3600; // Revalider toutes les heures (3600 secondes)
 
 export default async function DashboardPage() {
     // Récupérer les données du dashboard

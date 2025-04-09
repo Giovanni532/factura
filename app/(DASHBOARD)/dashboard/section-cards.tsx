@@ -70,6 +70,9 @@ export function SectionCards({ data }: SectionCardsProps) {
     return { icon, color, sign };
   };
 
+  // Style commun pour toutes les cartes pour garantir la même taille
+  const cardStyle = "h-full flex flex-col justify-between";
+
   return (
     <motion.div
       variants={container}
@@ -77,8 +80,8 @@ export function SectionCards({ data }: SectionCardsProps) {
       animate="show"
       className="*:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4 grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card lg:px-6"
     >
-      <motion.div variants={item}>
-        <Card className="@container/card overflow-hidden hover:shadow-md transition-shadow duration-300">
+      <motion.div variants={item} className="min-h-[200px]">
+        <Card className={`@container/card overflow-hidden hover:shadow-md transition-shadow duration-300 ${cardStyle}`}>
           <CardHeader className="relative">
             <div className="flex items-center gap-2">
               <BarChart4Icon className="size-4 text-primary" />
@@ -98,7 +101,7 @@ export function SectionCards({ data }: SectionCardsProps) {
               )}
             </motion.div>
           </CardHeader>
-          <CardFooter className="flex-col items-start gap-1 text-sm">
+          <CardFooter className="flex-col items-start gap-1 text-sm mt-auto">
             <motion.div className="line-clamp-1 flex gap-2 font-medium" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7, duration: 0.3 }}>
               {cards.revenue.trend >= 0 ? 'Hausse' : 'Baisse'} ce mois-ci
               {cards.revenue.trend >= 0 ? (
@@ -113,8 +116,8 @@ export function SectionCards({ data }: SectionCardsProps) {
           </CardFooter>
         </Card>
       </motion.div>
-      <motion.div variants={item}>
-        <Card className="@container/card overflow-hidden hover:shadow-md transition-shadow duration-300">
+      <motion.div variants={item} className="min-h-[200px]">
+        <Card className={`@container/card overflow-hidden hover:shadow-md transition-shadow duration-300 ${cardStyle}`}>
           <CardHeader className="relative">
             <div className="flex items-center gap-2">
               <UsersIcon className="size-4 text-primary" />
@@ -134,7 +137,7 @@ export function SectionCards({ data }: SectionCardsProps) {
               )}
             </motion.div>
           </CardHeader>
-          <CardFooter className="flex-col items-start gap-1 text-sm">
+          <CardFooter className="flex-col items-start gap-1 text-sm mt-auto">
             <motion.div className="line-clamp-1 flex gap-2 font-medium" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7, duration: 0.3 }}>
               {cards.clients.trend >= 0 ? 'En hausse' : 'En baisse'} ce mois-ci
               {cards.clients.trend >= 0 ? (
@@ -149,8 +152,8 @@ export function SectionCards({ data }: SectionCardsProps) {
           </CardFooter>
         </Card>
       </motion.div>
-      <motion.div variants={item}>
-        <Card className="@container/card overflow-hidden hover:shadow-md transition-shadow duration-300">
+      <motion.div variants={item} className="min-h-[200px]">
+        <Card className={`@container/card overflow-hidden hover:shadow-md transition-shadow duration-300 ${cardStyle}`}>
           <CardHeader className="relative">
             <div className="flex items-center gap-2">
               <FileTextIcon className="size-4 text-primary" />
@@ -170,7 +173,7 @@ export function SectionCards({ data }: SectionCardsProps) {
               )}
             </motion.div>
           </CardHeader>
-          <CardFooter className="flex-col items-start gap-1 text-sm">
+          <CardFooter className="flex-col items-start gap-1 text-sm mt-auto">
             <motion.div className="line-clamp-1 flex gap-2 font-medium" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7, duration: 0.3 }}>
               Activité {cards.quotes.trend >= 0 ? 'en hausse' : 'en baisse'}
               {cards.quotes.trend >= 0 ? (
@@ -185,8 +188,8 @@ export function SectionCards({ data }: SectionCardsProps) {
           </CardFooter>
         </Card>
       </motion.div>
-      <motion.div variants={item}>
-        <Card className="@container/card overflow-hidden hover:shadow-md transition-shadow duration-300">
+      <motion.div variants={item} className="min-h-[200px]">
+        <Card className={`@container/card overflow-hidden hover:shadow-md transition-shadow duration-300 ${cardStyle}`}>
           <CardHeader className="relative">
             <div className="flex items-center gap-2">
               <CreditCardIcon className="size-4 text-primary" />
@@ -206,7 +209,7 @@ export function SectionCards({ data }: SectionCardsProps) {
               )}
             </motion.div>
           </CardHeader>
-          <CardFooter className="flex-col items-start gap-1 text-sm">
+          <CardFooter className="flex-col items-start gap-1 text-sm mt-auto">
             <motion.div className="line-clamp-1 flex gap-2 font-medium" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7, duration: 0.3 }}>
               {cards.unpaidInvoices.trend > 0 ? (
                 <div className="flex items-center gap-1.5">
