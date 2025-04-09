@@ -69,11 +69,11 @@ export default function ProfilePageClient({ user }: { user: UserProfile }) {
         <Tabs defaultValue="personal" className="w-full" onValueChange={setActiveTab}>
           <motion.div variants={fadeInVariants}>
             <TabsList className="mb-6">
-              <TabsTrigger value="personal" className="flex items-center">
+              <TabsTrigger value="personal" className="flex items-center cursor-pointer">
                 <span className="mr-2">👤</span>
                 Personnel
               </TabsTrigger>
-              <TabsTrigger value="business" className="flex items-center">
+              <TabsTrigger value="business" className="flex items-center cursor-pointer">
                 <span className="mr-2">🏢</span>
                 Entreprise
               </TabsTrigger>

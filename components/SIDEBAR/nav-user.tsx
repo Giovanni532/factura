@@ -87,7 +87,7 @@ export function NavUser({
                     <span className="truncate font-medium">{user?.firstName} {user?.lastName}</span>
                     <span className="truncate text-xs text-muted-foreground">{user?.email}</span>
                   </div>
-                  <MoreVerticalIcon className="ml-auto size-4" />
+                  <MoreVerticalIcon className="ml-auto size-4 cursor-pointer" />
                 </SidebarMenuButton>
               </motion.div>
             </DropdownMenuTrigger>
@@ -113,7 +113,7 @@ export function NavUser({
               <DropdownMenuGroup>
                 <motion.div variants={menuItemVariants} initial="hidden" animate="show">
                   <DropdownMenuItem asChild>
-                    <Link href={paths.dashboard.profile(user?.id as string)}>
+                    <Link href={paths.dashboard.profile(user?.id as string)} className="cursor-pointer">
                       <UserCircleIcon className="mr-2 h-4 w-4" />
                       <span>Profil</span>
                     </Link>
@@ -121,7 +121,7 @@ export function NavUser({
                 </motion.div>
                 <motion.div variants={menuItemVariants} initial="hidden" animate="show" transition={{ delay: 0.2 }}>
                   <DropdownMenuItem asChild>
-                    <Link href={subscription.index(user?.id as string)}>
+                    <Link href={subscription.index(user?.id as string)} className="cursor-pointer">
                       <BarcodeIcon className="mr-2 h-4 w-4" />
                       <span>Abonnement</span>
                     </Link>
@@ -130,7 +130,7 @@ export function NavUser({
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <motion.div variants={menuItemVariants} initial="hidden" animate="show" transition={{ delay: 0.4 }}>
-                <DropdownMenuItem onClick={handleSignOut}>
+                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                   <LogOutIcon className="mr-2 h-4 w-4" />
                   <span>Déconnexion</span>
                 </DropdownMenuItem>
