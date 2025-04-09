@@ -6,29 +6,24 @@ import { getInvoiceById } from '@/actions/facture'
 import { getClientsByUserId } from '@/actions/client'
 import { getProductsByUserId } from '@/actions/produit'
 import { getUser } from '@/actions/auth'
+import { cache } from 'react'
 
-export async function generateMetadata({ params }: { params: Promise<{ invoiceId: string }> }) {
-    const { invoiceId } = await params;
-    return {
-        title: `Facture | Factura (${invoiceId})`,
-        description: `Modifier la facture ${invoiceId}`,
-    }
-}
+// Fonction mise en cache pour récupérer les données nécessaires à l'édition d'une facture
+const getInvoiceEditData = cache(async (invoiceId: string, userId: string) => {
+    // Récupérer toutes les données en parallèle
+    const [invoiceResponse, clientsResult, itemsResult] = await Promise.all([
+        getInvoiceById({ id: invoiceId }),
+        getClientsByUserId({ userId }),
+        getProductsByUserId({ userId })
+    ]);
 
-export default async function InvoicesPageEdit({ params }: { params: Promise<{ invoiceId: string }> }) {
-    const { invoiceId } = await params
-    const user = await getUser()
+    // Extraire les données de la facture
+    const invoiceData = invoiceResponse?.data?.invoice;
 
-    const response = await getInvoiceById({ id: invoiceId })
+    // Extraire les clients
+    const clients = clientsResult?.data?.clients || [];
 
-    // Fetch clients and products
-    const clientsResult = await getClientsByUserId({ userId: user?.id as string })
-    const itemsResult = await getProductsByUserId({ userId: user?.id as string })
-
-    // Handle possible errors or undefined responses
-    const clients = clientsResult?.data?.clients || []
-
-    // Map Item model to the Product type expected by the EditInvoicePage component
+    // Transformer les items en produits
     const products = (itemsResult?.data?.items || []).map(item => ({
         id: item.id,
         name: item.name,
@@ -40,8 +35,38 @@ export default async function InvoicesPageEdit({ params }: { params: Promise<{ i
         updatedAt: item.updatedAt
     }));
 
+    return { invoiceData, clients, products };
+});
+
+
+export async function generateMetadata({ params }: { params: Promise<{ invoiceId: string }> }) {
+    const { invoiceId } = await params;
+    return {
+        title: `Facture | Factura (${invoiceId})`,
+        description: `Modifier la facture ${invoiceId}`,
+    }
+}
+
+export default async function InvoicesPageEdit({ params }: { params: Promise<{ invoiceId: string }> }) {
+    const { invoiceId } = await params;
+    const user = await getUser();
+
+    // Vérifier si l'utilisateur est connecté
+    if (!user || !user.id) {
+        return (
+            <div className="container mx-auto px-4 py-6 max-w-7xl">
+                <div className="flex flex-col items-center justify-center h-96">
+                    <h2 className="text-2xl font-semibold mb-2">Vous devez être connecté</h2>
+                </div>
+            </div>
+        );
+    }
+
+    // Récupérer les données avec la fonction mise en cache
+    const { invoiceData, clients, products } = await getInvoiceEditData(invoiceId, user.id);
+
     // Check if response has the expected structure
-    if (!response?.data || !('invoice' in response.data) || !response.data.invoice) {
+    if (!invoiceData) {
         return (
             <div className="container mx-auto px-4 py-6 max-w-7xl">
                 <div className="flex flex-col items-center justify-center h-96">
@@ -52,12 +77,10 @@ export default async function InvoicesPageEdit({ params }: { params: Promise<{ i
         )
     }
 
-    const invoiceData = response.data?.invoice;
-
     // Transform the data structure to match the expected Invoice type
     const enhancedInvoice = {
         ...invoiceData,
-        userId: user?.id as string,
+        userId: user.id,
         clientId: invoiceData.client.id,
         items: invoiceData.items?.map(item => ({
             ...item,

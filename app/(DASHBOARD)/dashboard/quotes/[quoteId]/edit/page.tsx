@@ -4,30 +4,24 @@ import { getQuoteById } from '@/actions/quote'
 import { getClientsByUserId } from '@/actions/client'
 import { getProductsByUserId } from '@/actions/produit'
 import { getUser } from '@/actions/auth'
+import { cache } from 'react'
 
-export async function generateMetadata({ params }: { params: Promise<{ quoteId: string }> }) {
-    const { quoteId } = await params;
-    const quote = await getQuoteById({ id: quoteId });
-    return {
-        title: `Devis | Factura (${quote?.data?.quote?.id})`,
-        description: `Modifier le devis ${quote?.data?.quote?.id}`,
-    }
-}
+// Fonction mise en cache pour récupérer les données nécessaires à l'édition d'un devis
+const getQuoteEditData = cache(async (quoteId: string, userId: string) => {
+    // Récupérer toutes les données en parallèle
+    const [quoteResponse, clientsResult, itemsResult] = await Promise.all([
+        getQuoteById({ id: quoteId }),
+        getClientsByUserId({ userId }),
+        getProductsByUserId({ userId })
+    ]);
 
-export default async function QuotesPageEdit({ params }: { params: Promise<{ quoteId: string }> }) {
-    const { quoteId } = await params
-    const user = await getUser()
+    // Extraire les données du devis
+    const quoteData = quoteResponse?.data?.quote;
 
-    const response = await getQuoteById({ id: quoteId })
+    // Extraire les clients
+    const clients = clientsResult?.data?.clients || [];
 
-    // Fetch clients and products
-    const clientsResult = await getClientsByUserId({ userId: user?.id as string })
-    const itemsResult = await getProductsByUserId({ userId: user?.id as string })
-
-    // Handle possible errors or undefined responses
-    const clients = clientsResult?.data?.clients || []
-
-    // Map Item model to the Product type expected by the EditDevisPage component
+    // Transformer les items en produits
     const products = (itemsResult?.data?.items || []).map(item => ({
         id: item.id,
         name: item.name,
@@ -39,7 +33,37 @@ export default async function QuotesPageEdit({ params }: { params: Promise<{ quo
         updatedAt: item.updatedAt
     }));
 
-    if (!response?.data?.quote) {
+    return { quoteData, clients, products };
+});
+
+export async function generateMetadata({ params }: { params: Promise<{ quoteId: string }> }) {
+    const { quoteId } = await params;
+    const quote = await getQuoteById({ id: quoteId });
+    return {
+        title: `Devis | Factura (${quote?.data?.quote?.id})`,
+        description: `Modifier le devis ${quote?.data?.quote?.id}`,
+    }
+}
+
+export default async function QuotesPageEdit({ params }: { params: Promise<{ quoteId: string }> }) {
+    const { quoteId } = await params;
+    const user = await getUser();
+
+    // Vérifier si l'utilisateur est connecté
+    if (!user || !user.id) {
+        return (
+            <div className="container mx-auto px-4 py-6 max-w-7xl">
+                <div className="flex flex-col items-center justify-center h-96">
+                    <h2 className="text-2xl font-semibold mb-2">Vous devez être connecté</h2>
+                </div>
+            </div>
+        );
+    }
+
+    // Récupérer les données avec la fonction mise en cache
+    const { quoteData, clients, products } = await getQuoteEditData(quoteId, user.id);
+
+    if (!quoteData) {
         return (
             <div className="container mx-auto px-4 py-6 max-w-7xl">
                 <div className="flex flex-col items-center justify-center h-96">
@@ -48,7 +72,8 @@ export default async function QuotesPageEdit({ params }: { params: Promise<{ quo
             </div>
         )
     }
-    if (response.data.quote.status === "CONVERTED") {
+
+    if (quoteData.status === "CONVERTED") {
         return (
             <div className="container mx-auto px-4 py-6 max-w-7xl">
                 <div className="flex flex-col items-center justify-center h-96">
@@ -59,11 +84,9 @@ export default async function QuotesPageEdit({ params }: { params: Promise<{ quo
         )
     }
 
-    const quoteData = response.data.quote;
-
     const enhancedQuote = {
         id: quoteData.id,
-        userId: user?.id as string,
+        userId: user.id,
         total: 0,
         clientId: "",
         validUntil: null,
@@ -72,7 +95,6 @@ export default async function QuotesPageEdit({ params }: { params: Promise<{ quo
         status: quoteData.status,
         number: quoteData.number,
         items: quoteData.items?.map(item => {
-
             const matchingProduct = products.find(p =>
                 p.name === item.name
             );

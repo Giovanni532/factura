@@ -1,25 +1,32 @@
 import React from 'react'
 import { getInvoiceById } from '@/actions/facture'
 import InvoiceDetail from './invoice-detail'
+import { cache } from 'react'
+
+// Fonction mise en cache pour récupérer une facture spécifique
+const getInvoiceData = cache(async (invoiceId: string) => {
+    const response = await getInvoiceById({ id: invoiceId });
+    return response?.data?.invoice || null;
+});
+
 
 export async function generateMetadata({ params }: { params: Promise<{ invoiceId: string }> }) {
-    const { invoiceId } = await params;
+    const invoiceId = (await params).invoiceId;
+    const invoice = await getInvoiceData(invoiceId);
+
     return {
-        title: `Facture | Factura (${invoiceId})`,
-        description: `Modifier la facture ${invoiceId}`,
+        title: `Facture | Factura (${invoice?.number || invoiceId})`,
+        description: `Modifier la facture ${invoice?.number || invoiceId}`,
     }
 }
 
 export default async function InvoiceDetailPage({ params }: { params: Promise<{ invoiceId: string }> }) {
-    // Récupérer l'utilisateur connecté
-    const { invoiceId } = await params
+    const invoiceId = (await params).invoiceId;
 
-    // Récupérer les détails de la facture
-    const response = await getInvoiceById({ id: invoiceId })
+    // Récupérer les détails de la facture avec la fonction mise en cache
+    const invoice = await getInvoiceData(invoiceId);
 
-    const invoice = response?.data?.invoice
-
-    // Si la facture n'existe pas, rediriger vers la liste des factures
+    // Si la facture n'existe pas, afficher un message d'erreur
     if (!invoice) {
         return (
             <div className="container mx-auto px-4 py-6 max-w-7xl">

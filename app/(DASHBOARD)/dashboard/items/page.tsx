@@ -3,6 +3,22 @@ import { getUser } from '@/actions/auth'
 import { getProductsByUserId } from '@/actions/produit'
 import ItemTable from '@/components/items/item-table'
 import { redirect } from 'next/navigation'
+import { cache } from 'react'
+
+// Fonction mise en cache pour récupérer les articles
+const getItemsData = cache(async () => {
+    const user = await getUser()
+
+    if (!user || !user.id) {
+        return []
+    }
+
+    const response = await getProductsByUserId({ userId: user.id })
+    return response?.data?.items || []
+})
+
+// Revalidation toutes les heures
+export const revalidate = 3600;
 
 export default async function ItemsPage() {
     const user = await getUser()
@@ -11,9 +27,7 @@ export default async function ItemsPage() {
         redirect('/login')
     }
 
-    const response = await getProductsByUserId({ userId: user.id })
-    // Récupérer les produits avec une structure de secours pour éviter les erreurs
-    const items = response?.data?.items || []
+    const items = await getItemsData()
 
     return <ItemTable items={items} />
 }
