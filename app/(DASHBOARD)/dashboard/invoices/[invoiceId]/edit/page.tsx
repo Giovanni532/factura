@@ -2,18 +2,10 @@
 
 import React from 'react'
 import EditInvoicePage from './edit-invoice'
-import { getInvoiceById, getUserInvoices } from '@/actions/facture'
+import { getInvoiceById } from '@/actions/facture'
 import { getClientsByUserId } from '@/actions/client'
 import { getProductsByUserId } from '@/actions/produit'
 import { getUser } from '@/actions/auth'
-
-export async function generateStaticParams() {
-    const response = await getUserInvoices({});
-    if (!response?.data?.invoices) {
-        return [];
-    }
-    return response.data.invoices.map((invoice) => ({ invoiceId: invoice.id }));
-}
 
 export async function generateMetadata({ params }: { params: Promise<{ invoiceId: string }> }) {
     const { invoiceId } = await params;

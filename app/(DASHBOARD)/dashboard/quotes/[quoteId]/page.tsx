@@ -2,17 +2,6 @@ import React from 'react'
 import { getQuoteById } from '@/actions/quote'
 import QuoteDetailPage from './quote-detail';
 import { unstable_noStore } from 'next/cache';
-import { getUserQuotes } from '@/actions/quote'
-
-export async function generateStaticParams() {
-    const quotes = await getUserQuotes({});
-    if (!quotes?.data?.quotes) {
-        return [];
-    }
-    return quotes.data.quotes.map((quote) => ({
-        quoteId: quote.id,
-    }));
-}
 
 export async function generateMetadata({ params }: { params: Promise<{ quoteId: string }> }) {
     const { quoteId } = await params;
