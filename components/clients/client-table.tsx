@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import {
     Table,
     TableBody,
@@ -23,13 +23,24 @@ import { EditClientDialog } from './edit-client-dialog'
 import { Input } from '@/components/ui/input'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
 
 interface ClientTableProps {
     clients: Client[]
+    initialSearchQuery?: string
 }
 
-export default function ClientTable({ clients }: ClientTableProps) {
+export default function ClientTable({ clients, initialSearchQuery }: ClientTableProps) {
+    const searchParams = useSearchParams()
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Initialize the search query from URL parameters or initialSearchQuery
+    useEffect(() => {
+        const searchFromParams = searchParams.get('search') || initialSearchQuery || '';
+        if (searchFromParams) {
+            setSearchQuery(searchFromParams);
+        }
+    }, [searchParams, initialSearchQuery]);
 
     // Filtrer les clients en fonction de la recherche
     const filteredClients = useMemo(() => {

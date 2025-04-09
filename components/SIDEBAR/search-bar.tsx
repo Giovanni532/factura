@@ -1,7 +1,7 @@
 "use client"
 
 import { SearchIcon, Loader2 } from 'lucide-react'
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, KeyboardEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Input } from '@/components/ui/input'
 import { search, SearchResult } from '@/actions/search'
@@ -14,6 +14,7 @@ import { FileTextIcon, UserIcon, FileIcon } from 'lucide-react'
 export default function SearchBar() {
     const [searchQuery, setSearchQuery] = useState('')
     const [isSearchOpen, setIsSearchOpen] = useState(false)
+    const [activeIndex, setActiveIndex] = useState(-1)
     const searchRef = useRef<HTMLDivElement>(null)
     const router = useRouter()
 
@@ -26,6 +27,11 @@ export default function SearchBar() {
 
     // Get search results from the data
     const searchResults = data?.data?.data.results || []
+
+    // Reset active index when results change
+    useEffect(() => {
+        setActiveIndex(-1)
+    }, [searchResults])
 
     // Debounce search to avoid excessive server requests
     const debouncedSearch = useDebouncedCallback(
@@ -48,11 +54,43 @@ export default function SearchBar() {
     }
 
     // Handle result click
-    const handleResultClick = (url: string) => {
-        router.push(url)
-        setIsSearchOpen(false)
-        setSearchQuery('')
+    const handleResultClick = (url: string, result: SearchResult) => {
+        // For client results, redirect to the clients page with search param
+        if (result.type === 'client') {
+            router.push(`/dashboard/clients?search=${encodeURIComponent(result.title)}`);
+        } else {
+            router.push(url);
+        }
+        setIsSearchOpen(false);
+        setSearchQuery('');
     }
+
+    // Handle keyboard navigation
+    const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+        if (!isSearchOpen || searchResults.length === 0) return;
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                setActiveIndex(prev => (prev < searchResults.length - 1 ? prev + 1 : prev));
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                setActiveIndex(prev => (prev > 0 ? prev - 1 : 0));
+                break;
+            case 'Enter':
+                if (activeIndex >= 0 && activeIndex < searchResults.length) {
+                    e.preventDefault();
+                    const result = searchResults[activeIndex];
+                    handleResultClick(result.url, result);
+                }
+                break;
+            case 'Escape':
+                e.preventDefault();
+                setIsSearchOpen(false);
+                break;
+        }
+    };
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -83,7 +121,7 @@ export default function SearchBar() {
     }
 
     return (
-        <div className="relative hidden md:block" ref={searchRef}>
+        <div className="relative hidden md:block" ref={searchRef} onKeyDown={handleKeyDown}>
             <SearchIcon className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.3 }}>
                 <Input
@@ -119,12 +157,20 @@ export default function SearchBar() {
                                         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                                     </div>
                                 ) : searchResults.length > 0 ? (
-                                    <ul className="max-h-[400px] overflow-auto">
-                                        {searchResults.map((result: SearchResult) => (
-                                            <li key={`${result.type}-${result.id}`} className="border-b border-border last:border-0">
+                                    <ul className="max-h-[400px] overflow-auto" role="listbox">
+                                        {searchResults.map((result: SearchResult, index: number) => (
+                                            <li
+                                                key={`${result.type}-${result.id}`}
+                                                className="border-b border-border last:border-0"
+                                                role="option"
+                                                aria-selected={index === activeIndex}
+                                            >
                                                 <button
-                                                    onClick={() => handleResultClick(result.url)}
-                                                    className="flex w-full items-center gap-3 px-4 py-2 text-left hover:bg-muted/50"
+                                                    onClick={() => handleResultClick(result.url, result)}
+                                                    className={`flex w-full items-center gap-3 px-4 py-2 text-left hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 ${index === activeIndex ? 'bg-muted/50' : ''
+                                                        }`}
+                                                    tabIndex={0}
+                                                    onFocus={() => setActiveIndex(index)}
                                                 >
                                                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-background">
                                                         {getResultIcon(result.type)}
