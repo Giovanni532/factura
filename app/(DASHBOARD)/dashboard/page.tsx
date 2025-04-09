@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import { SectionCards } from './section-cards'
 import { RevenueChart } from '@/components/dashboard/revenue-chart'
 import { InvoiceChart } from '@/components/dashboard/invoice-chart'
@@ -6,23 +6,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { getRevenueStats, getClientStats, getQuoteStats, getUnpaidInvoicesTotal, getMonthlyRevenueData, getInvoiceStatusDistribution } from '@/actions/dashboard'
 import { DashboardData, UserInfo } from '@/types/dashboard'
 import { cache } from 'react'
+import { Skeleton } from '@/components/ui/skeleton'
 
-// Fonction mise en cache qui récupère toutes les données du dashboard
-const getDashboardData = cache(async (): Promise<DashboardData> => {
-    const [
-        revenueResult,
-        clientsResult,
-        quotesResult,
-        unpaidResult,
-        revenueChartResult,
-        invoiceStatusResult
-    ] = await Promise.all([
+// Fonction mise en cache qui récupère les données essentielles pour le contenu visible en premier
+const getEssentialDashboardData = cache(async () => {
+    const [revenueResult, clientsResult, quotesResult, unpaidResult] = await Promise.all([
         getRevenueStats({}),
         getClientStats({}),
         getQuoteStats({}),
-        getUnpaidInvoicesTotal({}),
-        getMonthlyRevenueData({}),
-        getInvoiceStatusDistribution({})
+        getUnpaidInvoicesTotal({})
     ]);
 
     // Récupérer les infos utilisateur à partir du premier résultat
@@ -33,7 +25,7 @@ const getDashboardData = cache(async (): Promise<DashboardData> => {
     };
 
     // Extraire les données ou utiliser des valeurs par défaut
-    const dashboardData: DashboardData = {
+    return {
         cards: {
             revenue: {
                 total: revenueResult?.data?.total || 0,
@@ -52,42 +44,91 @@ const getDashboardData = cache(async (): Promise<DashboardData> => {
                 trend: unpaidResult?.data?.trend || 0
             }
         },
-        charts: {
-            monthlyRevenue: revenueChartResult?.data?.data || [],
-            invoiceStatus: invoiceStatusResult?.data?.data || []
-        },
         user: userInfo
     };
-
-    // Vérifier s'il y a des erreurs dans les résultats
-    const hasErrors = [
-        revenueResult?.serverError,
-        clientsResult?.serverError,
-        quotesResult?.serverError,
-        unpaidResult?.serverError,
-        revenueChartResult?.serverError,
-        invoiceStatusResult?.serverError
-    ].some(error => error !== undefined);
-
-    if (hasErrors) {
-        console.error('Dashboard data error:', [
-            revenueResult?.serverError,
-            clientsResult?.serverError,
-            quotesResult?.serverError,
-            unpaidResult?.serverError,
-            revenueChartResult?.serverError,
-            invoiceStatusResult?.serverError
-        ]);
-    }
-
-    return dashboardData;
 });
+
+// Fonction mise en cache qui récupère les données des graphiques (moins prioritaire pour le LCP)
+const getChartData = cache(async () => {
+    const [revenueChartResult, invoiceStatusResult] = await Promise.all([
+        getMonthlyRevenueData({}),
+        getInvoiceStatusDistribution({})
+    ]);
+
+    return {
+        monthlyRevenue: revenueChartResult?.data?.data || [],
+        invoiceStatus: invoiceStatusResult?.data?.data || []
+    };
+});
+
+// Composant pour les graphiques avec chargement retardé
+async function DashboardCharts() {
+    const chartData = await getChartData();
+
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 px-4 lg:px-6 mt-4">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Revenus mensuels</CardTitle>
+                    <CardDescription>Évolution des revenus sur les 6 derniers mois</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <RevenueChart data={chartData.monthlyRevenue} />
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Statut des factures</CardTitle>
+                    <CardDescription>Répartition des factures par statut</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <InvoiceChart data={chartData.invoiceStatus} />
+                </CardContent>
+            </Card>
+        </div>
+    );
+}
+
+// Fallback de chargement pour les graphiques
+function ChartsLoadingFallback() {
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 px-4 lg:px-6 mt-4">
+            <Card>
+                <CardHeader>
+                    <CardTitle><Skeleton className="h-6 w-40" /></CardTitle>
+                    <CardDescription><Skeleton className="h-4 w-60" /></CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Skeleton className="h-[200px] w-full" />
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle><Skeleton className="h-6 w-40" /></CardTitle>
+                    <CardDescription><Skeleton className="h-4 w-60" /></CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Skeleton className="h-[200px] w-full" />
+                </CardContent>
+            </Card>
+        </div>
+    );
+}
 
 export const revalidate = 3600; // Revalider toutes les heures (3600 secondes)
 
 export default async function DashboardPage() {
-    // Récupérer les données du dashboard
-    const dashboardData = await getDashboardData();
+    // Ne récupérer que les données essentielles pour le contenu visible immédiatement
+    const essentialData = await getEssentialDashboardData();
+
+    // Construire l'objet de données pour les cartes
+    const dashboardData: DashboardData = {
+        cards: essentialData.cards,
+        charts: { monthlyRevenue: [], invoiceStatus: [] }, // Sera remplacé par les vraies données lors du chargement
+        user: essentialData.user
+    };
 
     return (
         <div className='flex flex-col gap-4'>
@@ -97,29 +138,14 @@ export default async function DashboardPage() {
                     Vous pouvez accéder à vos factures, réclamations et autres documents ici.
                 </p>
             </div>
+
+            {/* Cartes chargées prioritairement */}
             <SectionCards data={dashboardData} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 px-4 lg:px-6 mt-4">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Revenus mensuels</CardTitle>
-                        <CardDescription>Évolution des revenus sur les 6 derniers mois</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <RevenueChart data={dashboardData.charts.monthlyRevenue} />
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Statut des factures</CardTitle>
-                        <CardDescription>Répartition des factures par statut</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <InvoiceChart data={dashboardData.charts.invoiceStatus} />
-                    </CardContent>
-                </Card>
-            </div>
+            {/* Graphiques chargés de façon différée */}
+            <Suspense fallback={<ChartsLoadingFallback />}>
+                <DashboardCharts />
+            </Suspense>
         </div>
     )
 }
