@@ -6,6 +6,16 @@ export const paths = {
         forgetPassword: "/auth/forget-password",
         resetPassword: "/auth/reset-password",
     },
+    public: {
+        about: "/about",
+        contact: "/contact",
+        help: "/help",
+        pricing: "/pricing",
+        features: "/features",
+        privacy: "/privacy",
+        terms: "/terms",
+        blog: "/blog",
+    },
     dashboard: {
         home: "/dashboard",
         profile: (userId: string) => `/dashboard/${userId}/profile`,

@@ -8,11 +8,14 @@ const publicRoutes = [
     paths.auth.forgetPassword,
     paths.auth.resetPassword,
     paths.home,
-    '/help',
-    '/contact',
-    '/about',
-    '/privacy',
-    '/terms'
+    paths.public.help,
+    paths.public.contact,
+    paths.public.about,
+    paths.public.pricing,
+    paths.public.features,
+    paths.public.privacy,
+    paths.public.terms,
+    paths.public.blog
 ];
 
 // Vérifier si un chemin est public
