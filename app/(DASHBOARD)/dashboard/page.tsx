@@ -1,69 +1,47 @@
 import React, { Suspense } from 'react'
 import { SectionCards } from './section-cards'
 import { RevenueChart } from '@/components/dashboard/revenue-chart'
-import { InvoiceChart } from '@/components/dashboard/invoice-chart'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { getRevenueStats, getClientStats, getQuoteStats, getUnpaidInvoicesTotal, getMonthlyRevenueData, getInvoiceStatusDistribution } from '@/actions/dashboard'
-import { DashboardData, UserInfo } from '@/types/dashboard'
+import { DashboardData } from '@/types/dashboard'
 import { cache } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { cookies } from 'next/headers'
 
-// Fonction mise en cache qui récupère les données essentielles pour le contenu visible en premier
-const getEssentialDashboardData = cache(async () => {
-    const [revenueResult, clientsResult, quotesResult, unpaidResult] = await Promise.all([
-        getRevenueStats({}),
-        getClientStats({}),
-        getQuoteStats({}),
-        getUnpaidInvoicesTotal({})
-    ]);
-
-    // Récupérer les infos utilisateur à partir du premier résultat
-    const userInfo: UserInfo = revenueResult?.data?.user || {
-        id: "",
-        name: "Utilisateur",
-        email: ""
-    };
-
-    // Extraire les données ou utiliser des valeurs par défaut
-    return {
-        cards: {
-            revenue: {
-                total: revenueResult?.data?.total || 0,
-                trend: revenueResult?.data?.trend || 0
-            },
-            clients: {
-                total: clientsResult?.data?.total || 0,
-                trend: clientsResult?.data?.trend || 0
-            },
-            quotes: {
-                total: quotesResult?.data?.total || 0,
-                trend: quotesResult?.data?.trend || 0
-            },
-            unpaidInvoices: {
-                total: unpaidResult?.data?.total || 0,
-                trend: unpaidResult?.data?.trend || 0
-            }
+// Fonction mise en cache qui récupère les données du dashboard via l'API
+const getDashboardData = cache(async () => {
+    const allCookies = await cookies()
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard`, {
+        credentials: 'include',
+        headers: {
+            Cookie: allCookies.toString(),
         },
-        user: userInfo
-    };
-});
+        cache: 'no-store'
+    });
 
-// Fonction mise en cache qui récupère les données des graphiques (moins prioritaire pour le LCP)
-const getChartData = cache(async () => {
-    const [revenueChartResult, invoiceStatusResult] = await Promise.all([
-        getMonthlyRevenueData({}),
-        getInvoiceStatusDistribution({})
-    ]);
+    if (!response.ok) {
+        console.error('Failed to fetch dashboard data:', response.status);
+        return {
+            user: { id: "", name: "Utilisateur", email: "" },
+            stats: {
+                revenue: { total: 0, trend: 0 },
+                clients: { total: 0, trend: 0 },
+                quotes: { total: 0, trend: 0 },
+                unpaidInvoices: { total: 0, trend: 0 }
+            },
+            charts: {
+                monthlyRevenue: []
+            }
+        };
+    }
 
-    return {
-        monthlyRevenue: revenueChartResult?.data?.data || [],
-        invoiceStatus: invoiceStatusResult?.data?.data || []
-    };
+    const data = await response.json();
+
+    return data;
 });
 
 // Composant pour les graphiques avec chargement retardé
 async function DashboardCharts() {
-    const chartData = await getChartData();
+    const dashboardData = await getDashboardData();
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 px-4 lg:px-6 mt-4">
@@ -73,17 +51,7 @@ async function DashboardCharts() {
                     <CardDescription>Évolution des revenus sur les 6 derniers mois</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <RevenueChart data={chartData.monthlyRevenue} />
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Statut des factures</CardTitle>
-                    <CardDescription>Répartition des factures par statut</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <InvoiceChart data={chartData.invoiceStatus} />
+                    <RevenueChart data={dashboardData.charts.monthlyRevenue} />
                 </CardContent>
             </Card>
         </div>
@@ -120,14 +88,22 @@ function ChartsLoadingFallback() {
 export const revalidate = 3600; // Revalider toutes les heures (3600 secondes)
 
 export default async function DashboardPage() {
-    // Ne récupérer que les données essentielles pour le contenu visible immédiatement
-    const essentialData = await getEssentialDashboardData();
+    // Récupérer les données du dashboard
+    const apiData = await getDashboardData();
 
     // Construire l'objet de données pour les cartes
     const dashboardData: DashboardData = {
-        cards: essentialData.cards,
-        charts: { monthlyRevenue: [], invoiceStatus: [] }, // Sera remplacé par les vraies données lors du chargement
-        user: essentialData.user
+        cards: {
+            revenue: apiData.stats.revenue,
+            clients: apiData.stats.clients,
+            quotes: apiData.stats.quotes,
+            unpaidInvoices: apiData.stats.unpaidInvoices
+        },
+        charts: {
+            monthlyRevenue: apiData.charts.monthlyRevenue,
+            invoiceStatus: apiData.charts?.invoiceStatus || []
+        },
+        user: apiData.user
     };
 
     return (
@@ -139,7 +115,7 @@ export default async function DashboardPage() {
                 </p>
             </div>
 
-            {/* Cartes chargées prioritairement */}
+            {/* Cartes avec les statistiques */}
             <SectionCards data={dashboardData} />
 
             {/* Graphiques chargés de façon différée */}
