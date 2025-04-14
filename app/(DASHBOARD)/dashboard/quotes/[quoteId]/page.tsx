@@ -2,11 +2,18 @@ import React from 'react'
 import { getQuoteById } from '@/actions/quote'
 import QuoteDetailPage from './quote-detail';
 import { cache } from 'react'
-
+import { cookies } from 'next/headers'
 // Fonction pour récupérer un devis spécifique avec ID
 const getQuoteData = cache(async (quoteId: string) => {
-    const response = await getQuoteById({ id: quoteId });
-    return response?.data?.quote || null;
+    const allCookies = await cookies()
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/quotes/${quoteId}`, {
+        credentials: 'include',
+        headers: {
+            Cookie: allCookies.toString(),
+        },
+    })
+    const { quote } = await response.json();
+    return quote || null;
 });
 
 

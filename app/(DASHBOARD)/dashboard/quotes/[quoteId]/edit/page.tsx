@@ -15,17 +15,28 @@ const getQuoteEditData = cache(async (quoteId: string, userId: string) => {
         },
         cache: 'no-store'
     })
-    const clients = await responseClients.json();
-    const [quoteResponse, itemsResult] = await Promise.all([
-        getQuoteById({ id: quoteId }),
-        getProductsByUserId({ userId })
-    ]);
+    const { clients } = await responseClients.json();
 
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/quotes/${quoteId}`, {
+        credentials: 'include',
+        headers: {
+            Cookie: allCookies.toString(),
+        },
+    })
+    const { quote } = await response.json();
     // Extraire les données du devis
-    const quoteData = quoteResponse?.data?.quote;
+    const quoteData = quote;
+
+    const responseItems = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/products`, {
+        credentials: 'include',
+        headers: {
+            Cookie: allCookies.toString(),
+        },
+    })
+    const productsData = await responseItems.json();
 
     // Transformer les items en produits
-    const products = (itemsResult?.data?.items || []).map(item => ({
+    const products = (productsData || []).map((item: any) => ({
         id: item.id,
         name: item.name,
         description: item.description || "",
@@ -104,8 +115,8 @@ export default async function QuotesPageEdit({ params }: { params: Promise<{ quo
         createdAt: quoteData.createdAt,
         status: quoteData.status,
         number: quoteData.number,
-        items: quoteData.items?.map(item => {
-            const matchingProduct = products.find(p =>
+        items: quoteData.items?.map((item: any) => {
+            const matchingProduct = products.find((p: any) =>
                 p.name === item.name
             );
 

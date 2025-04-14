@@ -3,7 +3,6 @@
 import { useMutation } from "@/lib/safe-action"
 import { prisma } from "@/lib/prisma"
 import {
-    getUserQuotesSchema,
     getQuoteByIdSchema,
     duplicateQuoteSchema,
     deleteQuoteSchema,
@@ -12,117 +11,7 @@ import {
     updateQuoteSchema,
     createQuoteSchema
 } from "@/validations/quotes-schema";
-// Remove jsPDF imports as they'll be handled client-side or by a dedicated PDF service
 
-// Type for status - matching the enum in the database
-export type QuoteStatus = "DRAFT" | "SENT" | "ACCEPTED" | "REJECTED" | "CONVERTED"
-
-// Type for client data - matching the frontend expectations
-export interface QuoteClient {
-    name: string
-    company?: string
-}
-
-// Type for quote data - matching the frontend expectations
-export interface Quote {
-    id: string
-    number: string
-    client: QuoteClient
-    createdAt: Date
-    dueDate: Date
-    amount: number
-    status: QuoteStatus
-}
-
-// Type for detailed quote info with address and items
-export interface QuoteDetail {
-    id: string;
-    number: string;
-    client: {
-        name: string;
-        email: string;
-        address: {
-            street: string;
-            city: string;
-            postalCode: string;
-            country: string;
-        };
-    };
-    company: {
-        name: string;
-        email: string;
-        address: {
-            street: string;
-            city: string;
-            postalCode: string;
-            country: string;
-        };
-        logo?: string;
-        taxId: string;
-    };
-    items: {
-        id: string;
-        name: string;
-        description: string;
-        quantity: number;
-        unitPrice: number;
-        taxRate: number;
-    }[];
-    createdAt: Date;
-    dueDate: Date;
-    status: QuoteStatus;
-    discount?: {
-        type: "percentage" | "fixed";
-        value: number;
-    };
-    notes?: string;
-    total: number;
-}
-
-// Server action to get all quotes for the currently authenticated user
-export const getUserQuotes = useMutation(
-    getUserQuotesSchema,
-    async (_input, { userId }) => {
-        try {
-            // Fetch quotes from database that belong to the current user
-            const quotes = await prisma.quote.findMany({
-                where: {
-                    userId: userId
-                },
-                include: {
-                    client: true,
-                    quoteItems: {
-                        include: {
-                            item: true
-                        }
-                    }
-                },
-                orderBy: {
-                    createdAt: 'desc'
-                }
-            });
-
-            // Transform database quotes to the format expected by the frontend
-            const formattedQuotes: Quote[] = quotes.map(quote => ({
-                id: quote.id,
-                number: `DEV-${quote.id.slice(0, 8)}`, // Generate a number based on ID
-                client: {
-                    name: quote.client.name,
-                    company: quote.client.company || undefined
-                },
-                createdAt: quote.createdAt,
-                dueDate: quote.validUntil || new Date(), // Use validUntil or fallback to current date
-                amount: quote.total,
-                status: mapStatus(quote.status) // Convert database status to frontend status
-            }));
-
-            return { quotes: formattedQuotes };
-        } catch (error) {
-            console.error("Error fetching quotes:", error);
-            return { quotes: [] };
-        }
-    }
-);
 
 // Server action to get a specific quote by ID
 export const getQuoteById = useMutation(

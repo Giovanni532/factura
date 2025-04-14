@@ -29,12 +29,12 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { paths } from "@/paths"
-import { QuoteDetail, QuoteStatus, duplicateQuote, deleteQuote, convertQuoteToInvoice } from "@/actions/quote"
+import { duplicateQuote, deleteQuote, convertQuoteToInvoice } from "@/actions/quote"
 import { useAction } from "@/hooks/use-action"
 import { QuotePdfGenerator } from "@/components/quotes/quote-pdf-generator"
 import { QuotePrintService } from "@/components/quotes/quote-print-service"
 import { formatCurrency } from "@/lib/utils"
-
+import { QuoteStatus, QuoteDetail } from "@/app/(API)/api/dashboard/quotes/route"
 // Types
 type DevisStatus = QuoteStatus
 

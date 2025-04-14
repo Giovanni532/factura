@@ -1,12 +1,18 @@
 import React from 'react'
 import DataTableQuote from './data-table-quote'
-import { getUserQuotes } from '@/actions/quote'
 import { cache } from 'react'
-
+import { cookies } from 'next/headers'
 // Fonction mise en cache pour récupérer les devis
 const getQuotesData = cache(async () => {
-    const quotes = await getUserQuotes({});
-    return quotes?.data?.quotes || [];
+    const allCookies = await cookies()
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/quotes`, {
+        credentials: 'include',
+        headers: {
+            Cookie: allCookies.toString(),
+        },
+    })
+    const quotes = await response.json();
+    return quotes || [];
 })
 
 // Revalidation toutes les heures
@@ -35,7 +41,7 @@ export async function generateStaticParams() {
         return [];
     }
 
-    return quotes.map((quote) => ({ quoteId: quote.id }));
+    return quotes.map((quote: any) => ({ quoteId: quote.id }));
 }
 
 export default async function QuotesPage() {
