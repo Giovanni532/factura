@@ -29,7 +29,6 @@ export default async function ProfilePage() {
         headers: {
             Cookie: allCookies.toString(),
         },
-        cache: 'no-store'
     })
     const user = await response.json();
     return (

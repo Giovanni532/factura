@@ -1,24 +1,28 @@
 import React from 'react'
 import EditDevisPage from './quote-edit'
 import { getQuoteById } from '@/actions/quote'
-import { getClientsByUserId } from '@/actions/client'
 import { getProductsByUserId } from '@/actions/produit'
 import { cache } from 'react'
 import { cookies } from 'next/headers'
 // Fonction mise en cache pour récupérer les données nécessaires à l'édition d'un devis
 const getQuoteEditData = cache(async (quoteId: string, userId: string) => {
     // Récupérer toutes les données en parallèle
-    const [quoteResponse, clientsResult, itemsResult] = await Promise.all([
+    const allCookies = await cookies()
+    const responseClients = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/clients`, {
+        credentials: 'include',
+        headers: {
+            Cookie: allCookies.toString(),
+        },
+        cache: 'no-store'
+    })
+    const clients = await responseClients.json();
+    const [quoteResponse, itemsResult] = await Promise.all([
         getQuoteById({ id: quoteId }),
-        getClientsByUserId({ userId }),
         getProductsByUserId({ userId })
     ]);
 
     // Extraire les données du devis
     const quoteData = quoteResponse?.data?.quote;
-
-    // Extraire les clients
-    const clients = clientsResult?.data?.clients || [];
 
     // Transformer les items en produits
     const products = (itemsResult?.data?.items || []).map(item => ({
@@ -120,7 +124,7 @@ export default async function QuotesPageEdit({ params }: { params: Promise<{ quo
     };
 
     if (quoteData.client && quoteData.client.name) {
-        const matchingClient = clients.find(c => c.name === quoteData.client.name);
+        const matchingClient = clients.find((c: any) => c.name === quoteData.client.name);
         if (matchingClient) {
             enhancedQuote.clientId = matchingClient.id;
         }

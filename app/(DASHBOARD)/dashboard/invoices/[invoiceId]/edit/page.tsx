@@ -3,7 +3,6 @@
 import React from 'react'
 import EditInvoicePage from './edit-invoice'
 import { getInvoiceById } from '@/actions/facture'
-import { getClientsByUserId } from '@/actions/client'
 import { getProductsByUserId } from '@/actions/produit'
 import { cache } from 'react'
 import { cookies } from 'next/headers'
@@ -11,17 +10,22 @@ import { cookies } from 'next/headers'
 // Fonction mise en cache pour récupérer les données nécessaires à l'édition d'une facture
 const getInvoiceEditData = cache(async (invoiceId: string, userId: string) => {
     // Récupérer toutes les données en parallèle
-    const [invoiceResponse, clientsResult, itemsResult] = await Promise.all([
+    const allCookies = await cookies()
+    const responseClients = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/clients`, {
+        credentials: 'include',
+        headers: {
+            Cookie: allCookies.toString(),
+        },
+        cache: 'no-store'
+    })
+    const clients = await responseClients.json();
+    const [invoiceResponse, itemsResult] = await Promise.all([
         getInvoiceById({ id: invoiceId }),
-        getClientsByUserId({ userId }),
         getProductsByUserId({ userId })
     ]);
 
     // Extraire les données de la facture
     const invoiceData = invoiceResponse?.data?.invoice;
-
-    // Extraire les clients
-    const clients = clientsResult?.data?.clients || [];
 
     // Transformer les items en produits
     const products = (itemsResult?.data?.items || []).map(item => ({
@@ -50,14 +54,14 @@ export async function generateMetadata({ params }: { params: Promise<{ invoiceId
 export default async function InvoicesPageEdit({ params }: { params: Promise<{ invoiceId: string }> }) {
     const { invoiceId } = await params;
     const allCookies = await cookies()
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/user`, {
+    const responseUser = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/user`, {
         credentials: 'include',
         headers: {
             Cookie: allCookies.toString(),
         },
         cache: 'no-store'
     })
-    const user = await response.json();
+    const user = await responseUser.json();
     // Vérifier si l'utilisateur est connecté
     if (!user || !user.id) {
         return (

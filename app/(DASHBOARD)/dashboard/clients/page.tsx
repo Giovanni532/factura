@@ -1,5 +1,4 @@
 import React from 'react'
-import { getClientsByUserId } from '@/actions/client'
 import ClientTable from '@/components/clients/client-table'
 import { cache } from 'react'
 import { cookies } from 'next/headers'
@@ -18,8 +17,15 @@ const getClientsData = cache(async () => {
         return []
     }
 
-    const responseClients = await getClientsByUserId({ userId: user.id as string })
-    return responseClients?.data?.clients || []
+    const responseClients = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/clients`, {
+        credentials: 'include',
+        headers: {
+            Cookie: allCookies.toString(),
+        },
+        cache: 'no-store'
+    })
+    const clients = await responseClients.json();
+    return clients?.clients || []
 })
 
 // Revalidation toutes les heures

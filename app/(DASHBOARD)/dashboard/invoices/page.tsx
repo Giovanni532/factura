@@ -1,7 +1,7 @@
-import { getUserInvoices } from "@/actions/facture"
 import DataTableInvoice from "./data-table-invoice"
 import { cache } from 'react'
 import { cookies } from "next/headers"
+import { Invoice } from "@prisma/client"
 
 // Fonction mise en cache pour récupérer les factures
 const getInvoicesData = cache(async () => {
@@ -20,8 +20,14 @@ const getInvoicesData = cache(async () => {
     }
 
     // Récupérer les factures de l'utilisateur
-    const responseInvoices = await getUserInvoices({ userId: user.id as string })
-    return responseInvoices?.data?.invoices || []
+    const responseInvoices = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/factures`, {
+        credentials: 'include',
+        headers: {
+            Cookie: allCookies.toString(),
+        },
+    })
+    const invoices = await responseInvoices.json();
+    return invoices || []
 })
 
 // Revalidation toutes les heures
@@ -41,7 +47,7 @@ export async function generateStaticParams() {
         return [];
     }
 
-    return invoices.map((invoice) => ({ invoiceId: invoice.id }));
+    return invoices.map((invoice: Invoice) => ({ invoiceId: invoice.id }));
 }
 
 export default async function InvoicesPage() {
