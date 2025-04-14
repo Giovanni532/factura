@@ -5,8 +5,8 @@ import EditInvoicePage from './edit-invoice'
 import { getInvoiceById } from '@/actions/facture'
 import { getClientsByUserId } from '@/actions/client'
 import { getProductsByUserId } from '@/actions/produit'
-import { getUser } from '@/actions/auth'
 import { cache } from 'react'
+import { cookies } from 'next/headers'
 
 // Fonction mise en cache pour récupérer les données nécessaires à l'édition d'une facture
 const getInvoiceEditData = cache(async (invoiceId: string, userId: string) => {
@@ -49,8 +49,15 @@ export async function generateMetadata({ params }: { params: Promise<{ invoiceId
 
 export default async function InvoicesPageEdit({ params }: { params: Promise<{ invoiceId: string }> }) {
     const { invoiceId } = await params;
-    const user = await getUser();
-
+    const allCookies = await cookies()
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/user`, {
+        credentials: 'include',
+        headers: {
+            Cookie: allCookies.toString(),
+        },
+        cache: 'no-store'
+    })
+    const user = await response.json();
     // Vérifier si l'utilisateur est connecté
     if (!user || !user.id) {
         return (

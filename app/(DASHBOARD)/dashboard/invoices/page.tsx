@@ -1,20 +1,27 @@
-import { getUser } from "@/actions/auth"
 import { getUserInvoices } from "@/actions/facture"
 import DataTableInvoice from "./data-table-invoice"
 import { cache } from 'react'
+import { cookies } from "next/headers"
 
 // Fonction mise en cache pour récupérer les factures
 const getInvoicesData = cache(async () => {
-    // Vérifier que l'utilisateur est connecté
-    const user = await getUser()
-
+    const allCookies = await cookies()
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/user`,
+        {
+            credentials: 'include',
+            headers: {
+                Cookie: allCookies.toString(),
+            },
+        }
+    )
+    const user = await response.json();
     if (!user?.id) {
         return []
     }
 
     // Récupérer les factures de l'utilisateur
-    const response = await getUserInvoices({ userId: user.id as string })
-    return response?.data?.invoices || []
+    const responseInvoices = await getUserInvoices({ userId: user.id as string })
+    return responseInvoices?.data?.invoices || []
 })
 
 // Revalidation toutes les heures

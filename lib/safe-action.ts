@@ -1,6 +1,6 @@
 import { createSafeActionClient } from "next-safe-action";
+import { cookies } from "next/headers";
 import { ZodError, ZodSchema } from "zod";
-import { getUser } from "@/actions/auth";
 
 // Classe d'erreur personnalisée pour les actions
 class ActionError extends Error {
@@ -41,8 +41,15 @@ const baseActionClient = createSafeActionClient({
 // Client d'action avec middleware pour récupérer la session utilisateur
 export const authActionClient = baseActionClient.use(async ({ next }) => {
     // Récupère la session de l'utilisateur
-    const user = await getUser();
-
+    const allCookies = await cookies()
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/user`, {
+        credentials: 'include',
+        headers: {
+            Cookie: allCookies.toString(),
+        },
+        cache: 'no-store'
+    })
+    const user = await response.json();
     // Vérifie si l'utilisateur est connecté
     if (!user) {
         throw new ActionError("Vous devez être connecté pour effectuer cette action");

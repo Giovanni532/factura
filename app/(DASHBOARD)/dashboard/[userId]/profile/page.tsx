@@ -1,10 +1,18 @@
 import React from 'react'
 import ProfilePageClient from './profile-page'
-import { getUser } from '@/actions/auth'
 import { UserProfile } from '@/lib/utils'
+import { cookies } from 'next/headers'
 
 export async function generateMetadata() {
-    const user = await getUser();
+    const allCookies = await cookies()
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/user`, {
+        credentials: 'include',
+        headers: {
+            Cookie: allCookies.toString(),
+        },
+        cache: 'no-store'
+    })
+    const user = await response.json();
     if (!user?.id) {
         return [];
     }
@@ -15,7 +23,15 @@ export async function generateMetadata() {
 }
 
 export default async function ProfilePage() {
-    const user = await getUser()
+    const allCookies = await cookies()
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/user`, {
+        credentials: 'include',
+        headers: {
+            Cookie: allCookies.toString(),
+        },
+        cache: 'no-store'
+    })
+    const user = await response.json();
     return (
         <ProfilePageClient user={user as UserProfile} />
     )
