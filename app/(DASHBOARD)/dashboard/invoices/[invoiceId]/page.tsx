@@ -1,12 +1,20 @@
 import React from 'react'
-import { getInvoiceById } from '@/actions/facture'
 import InvoiceDetail from './invoice-detail'
 import { cache } from 'react'
-
+import { cookies } from 'next/headers'
 // Fonction mise en cache pour récupérer une facture spécifique
 const getInvoiceData = cache(async (invoiceId: string) => {
-    const response = await getInvoiceById({ id: invoiceId });
-    return response?.data?.invoice || null;
+    const allCookies = await cookies()
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/factures/${invoiceId}`, {
+        credentials: 'include',
+        headers: {
+            Cookie: allCookies.toString(),
+        },
+        cache: 'no-store'
+    })
+    const { invoice } = await response.json();
+
+    return invoice;
 });
 
 

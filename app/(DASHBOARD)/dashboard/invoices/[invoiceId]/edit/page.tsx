@@ -2,8 +2,6 @@
 
 import React from 'react'
 import EditInvoicePage from './edit-invoice'
-import { getInvoiceById } from '@/actions/facture'
-import { getProductsByUserId } from '@/actions/produit'
 import { cache } from 'react'
 import { cookies } from 'next/headers'
 
@@ -18,17 +16,28 @@ const getInvoiceEditData = cache(async (invoiceId: string, userId: string) => {
         },
         cache: 'no-store'
     })
-    const clients = await responseClients.json();
-    const [invoiceResponse, itemsResult] = await Promise.all([
-        getInvoiceById({ id: invoiceId }),
-        getProductsByUserId({ userId })
-    ]);
+    const { clients } = await responseClients.json();
 
-    // Extraire les données de la facture
-    const invoiceData = invoiceResponse?.data?.invoice;
+    const responseInvoice = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/factures/${invoiceId}`, {
+        credentials: 'include',
+        headers: {
+            Cookie: allCookies.toString(),
+        },
+        cache: 'no-store'
+    })
+    const { invoice } = await responseInvoice.json();
+
+    const responseProducts = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/products`, {
+        credentials: 'include',
+        headers: {
+            Cookie: allCookies.toString(),
+        },
+        cache: 'no-store'
+    })
+    const products = await responseProducts.json();
 
     // Transformer les items en produits
-    const products = (itemsResult?.data?.items || []).map(item => ({
+    const productsTransformed = (products || []).map((item: any) => ({
         id: item.id,
         name: item.name,
         description: item.description || "",
@@ -39,7 +48,7 @@ const getInvoiceEditData = cache(async (invoiceId: string, userId: string) => {
         updatedAt: item.updatedAt
     }));
 
-    return { invoiceData, clients, products };
+    return { invoice, clients, products: productsTransformed };
 });
 
 
@@ -74,10 +83,10 @@ export default async function InvoicesPageEdit({ params }: { params: Promise<{ i
     }
 
     // Récupérer les données avec la fonction mise en cache
-    const { invoiceData, clients, products } = await getInvoiceEditData(invoiceId, user.id);
+    const { invoice, clients, products } = await getInvoiceEditData(invoiceId, user.id);
 
     // Check if response has the expected structure
-    if (!invoiceData) {
+    if (!invoice) {
         return (
             <div className="container mx-auto px-4 py-6 max-w-7xl">
                 <div className="flex flex-col items-center justify-center h-96">
@@ -90,10 +99,10 @@ export default async function InvoicesPageEdit({ params }: { params: Promise<{ i
 
     // Transform the data structure to match the expected Invoice type
     const enhancedInvoice = {
-        ...invoiceData,
+        ...invoice,
         userId: user.id,
-        clientId: invoiceData.client.id,
-        items: invoiceData.items?.map(item => ({
+        clientId: invoice.client.id,
+        items: invoice.items?.map((item: any) => ({
             ...item,
             description: item.description || ""
         }))
