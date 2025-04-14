@@ -55,12 +55,10 @@ import {
     ChevronLeft,
     ChevronRight
 } from 'lucide-react'
-import { Invoice, deleteInvoice } from '@/actions/facture'
+import { deleteInvoice } from '@/actions/facture'
 import { paths } from '@/paths'
-import { InvoicePdfGenerator } from '@/components/invoices/invoice-pdf-generator'
-import { formatCurrency } from '@/lib/utils'
 import { toast } from 'sonner'
-import { getInvoiceById } from '@/actions/facture'
+import { Invoice } from '@/app/(API)/api/dashboard/factures/route'
 
 // Mapping des statuts pour l'affichage
 const statusLabels: Record<string, { label: string, color: string }> = {

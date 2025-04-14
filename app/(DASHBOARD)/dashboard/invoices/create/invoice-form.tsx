@@ -134,14 +134,13 @@ const formSchema = z.object({
 export default function InvoiceForm({
     clients,
     products,
-    user,
     invoice
 }: {
     clients: Client[]
     products: Product[]
-    user: User
     invoice?: Invoice
 }) {
+    console.log(clients);
     const router = useRouter()
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [total, setTotal] = useState(0)
