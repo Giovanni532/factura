@@ -1,9 +1,17 @@
 import React from 'react'
 import { SubscriptionPlans } from '@/components/subscription-plan'
-import { getUser } from '@/actions/auth'
+import { cookies } from 'next/headers'
 
 export default async function SubscriptionPage() {
-    const user = await getUser()
+    const allCookies = await cookies()
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/user`, {
+        credentials: 'include',
+        headers: {
+            Cookie: allCookies.toString(),
+        },
+        cache: 'no-store'
+    })
+    const user = await response.json();
 
     return (
         <div className="flex flex-col gap-4">
