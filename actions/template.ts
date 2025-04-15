@@ -28,6 +28,11 @@ const updateTemplateSchema = z.object({
     ...templateSchema.shape
 })
 
+// Schéma de validation pour définir un template comme défaut
+const setDefaultTemplateSchema = z.object({
+    id: z.string()
+})
+
 export const createTemplate = useMutation(
     templateSchema,
     async (data, { userId }) => {
@@ -235,6 +240,65 @@ export const deleteTemplate = useMutation(
             return {
                 success: false,
                 error: 'Failed to delete template'
+            }
+        }
+    }
+)
+
+export const setDefaultTemplate = useMutation(
+    setDefaultTemplateSchema,
+    async ({ id }, { userId }) => {
+        try {
+            // Check if template belongs to user
+            const existingTemplate = await prisma.template.findUnique({
+                where: { id },
+                select: { id: true, userId: true, type: true }
+            })
+
+            if (!existingTemplate) {
+                return {
+                    success: false,
+                    error: 'Template not found'
+                }
+            }
+
+            if (existingTemplate.userId !== userId) {
+                return {
+                    success: false,
+                    error: 'You are not authorized to modify this template'
+                }
+            }
+
+            // Unset any existing default templates of the same type
+            await prisma.template.updateMany({
+                where: {
+                    userId,
+                    type: existingTemplate.type,
+                    isDefault: true
+                },
+                data: {
+                    isDefault: false
+                }
+            })
+
+            // Set this template as default
+            const updatedTemplate = await prisma.template.update({
+                where: { id },
+                data: {
+                    isDefault: true
+                }
+            })
+
+            revalidatePath(paths.dashboard.templates.list)
+            return {
+                success: true,
+                data: updatedTemplate
+            }
+        } catch (error) {
+            console.error('Set default template error:', error)
+            return {
+                success: false,
+                error: 'Failed to set template as default'
             }
         }
     }

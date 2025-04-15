@@ -39,6 +39,7 @@ import {
 
 import { toast } from 'sonner'
 import Image from 'next/image'
+import { createTemplate } from '@/actions/template'
 
 // Example company data
 const exampleCompany = {
@@ -197,12 +198,60 @@ export default function TemplateEditor({
                     elements: elements,
                     // Ajouter d'autres paramètres de template si nécessaire
                 }),
+                isDefault: false
             }
 
             onSave(templateData)
             setShowSaveDialog(false)
         }
     }
+
+    // Fonction pour sauvegarder directement avec l'action createTemplate
+    const saveTemplateToDatabase = async () => {
+        // Valider que le template a un nom
+        if (!templateName.trim()) {
+            toast.error("Le nom du template est requis");
+            return;
+        }
+
+        try {
+            // Collecter tous les éléments et leur position
+            const templateData = {
+                name: templateName,
+                description: templateDescription,
+                type: templateTypeState,
+                content: JSON.stringify({
+                    color: selectedColor,
+                    elements: elements,
+                }),
+                isDefault: false
+            };
+
+            // Si onSave est défini, utiliser la fonction de rappel (comme dans handleSave)
+            if (onSave) {
+                onSave(templateData);
+            } else {
+                // Sinon, utiliser directement l'action createTemplate
+                // Cette partie ne serait utilisée que si le composant est utilisé directement sans callback
+                const result = await createTemplate(templateData);
+
+                if (result && 'success' in result && result.success) {
+                    toast.success("Template sauvegardé avec succès");
+                    // Rediriger vers la liste des templates ou faire autre chose
+                } else {
+                    const errorMessage = result && 'error' in result && typeof result.error === 'string'
+                        ? result.error
+                        : "Erreur lors de la sauvegarde du template";
+                    toast.error(errorMessage);
+                }
+            }
+
+            setShowSaveDialog(false);
+        } catch (error) {
+            console.error("Erreur lors de la sauvegarde:", error);
+            toast.error("Une erreur s'est produite lors de la sauvegarde du template");
+        }
+    };
 
     // Ajout d'un nouvel élément au canvas
     const addElement = (type: ElementType) => {
@@ -826,7 +875,7 @@ export default function TemplateEditor({
                     </DialogHeader>
 
                     <div className="space-y-4 py-4">
-                        <div>
+                        <div className="flex flex-col gap-2">
                             <Label htmlFor="templateName">Nom du template</Label>
                             <Input
                                 id="templateName"
@@ -835,7 +884,7 @@ export default function TemplateEditor({
                                 placeholder="Mon template personnalisé"
                             />
                         </div>
-                        <div>
+                        <div className="flex flex-col gap-2">
                             <Label htmlFor="templateDescription">Description</Label>
                             <Textarea
                                 id="templateDescription"
@@ -845,7 +894,7 @@ export default function TemplateEditor({
                                 rows={3}
                             />
                         </div>
-                        <div>
+                        <div className="flex flex-col gap-2">
                             <Label htmlFor="templateType">Type de template</Label>
                             <Select
                                 value={templateTypeState}
@@ -867,7 +916,7 @@ export default function TemplateEditor({
                         <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
                             Annuler
                         </Button>
-                        <Button onClick={handleSave} disabled={!templateName}>
+                        <Button onClick={saveTemplateToDatabase} disabled={!templateName}>
                             {isSubmitting ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
