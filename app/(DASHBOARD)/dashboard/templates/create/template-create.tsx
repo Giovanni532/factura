@@ -2,11 +2,8 @@
 
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { ArrowLeft } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
-import TemplateEditor from "@/components/templates/TemplateEditor"
+import TemplateEditor from "@/components/templates/template-editor"
 import { createTemplate } from "@/actions/template"
 import { useAction } from "@/hooks/use-action"
 import { paths } from "@/paths"
