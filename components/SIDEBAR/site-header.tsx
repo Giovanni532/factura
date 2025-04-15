@@ -13,6 +13,25 @@ import Link from "next/link"
 import React from "react"
 import SearchBar from "./search-bar"
 
+const translate = (path: string) => {
+  switch (path) {
+    case "dashboard":
+      return "Tableau de bord"
+    case "clients":
+      return "Clients"
+    case "items":
+      return "Produits/Services"
+    case "invoices":
+      return "Factures"
+    case "quotes":
+      return "Devis"
+    case "settings":
+      return "Paramètres"
+    default:
+      return path
+  }
+}
+
 export function SiteHeader() {
   const { theme, setTheme } = useTheme()
   const pathname = usePathname()
@@ -24,7 +43,7 @@ export function SiteHeader() {
         {index !== 0 && index !== 1 && <BreadcrumbSeparator />}
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/${pathLink}`}>{path.charAt(0).toUpperCase() + path.slice(1)}</Link>
+            <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/${pathLink}`}>{translate(path)}</Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
       </React.Fragment>

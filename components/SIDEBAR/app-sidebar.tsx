@@ -70,18 +70,12 @@ const navMain = [
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuthStore()
 
-  const userData = user ? {
-    id: user.id as string,
-    firstName: user.name?.split(" ")[0] || "Utilisateur",
-    lastName: user.name?.split(" ")[1] || "Utilisateur",
-    email: user.email || "user@example.com",
-    avatar: user.image || "/avatars/default.jpg",
-  } : {
-    id: "",
-    firstName: "Utilisateur",
-    lastName: "Utilisateur",
-    email: "user@example.com",
-    avatar: "/avatars/default.jpg",
+  const userData = {
+    id: user?.id as string,
+    firstName: user?.name?.split(" ")[0] as string,
+    lastName: user?.name?.split(" ")[1] as string,
+    email: user?.email as string,
+    avatar: user?.image as string,
   }
 
   return (
