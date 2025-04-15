@@ -34,6 +34,11 @@ export const paths = {
             edit: (invoiceId: string) => `/dashboard/invoices/${invoiceId}/edit`,
         },
 
+        templates: {
+            list: "/dashboard/templates",
+            create: "/dashboard/templates/create",
+            detail: (templateId: string) => `/dashboard/templates/${templateId}`,
+        },
 
         clients: {
             list: "/dashboard/clients",

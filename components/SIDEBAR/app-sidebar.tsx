@@ -7,6 +7,7 @@ import {
   FileTextIcon,
   LayoutDashboardIcon,
   PackageIcon,
+  SettingsIcon,
   UsersIcon,
 } from "lucide-react"
 
@@ -72,6 +73,14 @@ const navMain = [
     icon: PackageIcon,
     actions: [
       { label: "Voir tous les produits", url: paths.dashboard.items.list },
+    ],
+  },
+  {
+    title: "Style de facturation",
+    url: paths.dashboard.templates.list,
+    icon: SettingsIcon,
+    actions: [
+      { label: "Voir tous les styles", url: paths.dashboard.templates.list },
     ],
   },
 ]

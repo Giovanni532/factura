@@ -18,6 +18,25 @@ enum Role {
   USER
 }
 
+enum TemplateType {
+  INVOICE
+  QUOTE
+  BOTH
+}
+
+model Template {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  type        TemplateType @default(BOTH)
+  content     String       @db.Text
+  isDefault   Boolean      @default(false)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
 model User {
   id            String        @id @default(uuid())
   email         String        @unique
@@ -36,6 +55,7 @@ model User {
   invoices      Invoice[]
   subscriptions Subscription?
   Payment       Payment[]
+  templates     Template[]
 
   @@map("users")
 }
@@ -147,6 +167,7 @@ model Quote {
   Invoice     Invoice?    @relation(fields: [invoiceId], references: [id])
   invoiceId   String?
   convertedTo Invoice?    @relation("ConvertedInvoice")
+  templateId  String?
 }
 
 model QuoteItem {
@@ -178,6 +199,7 @@ model Invoice {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   Quote         Quote[]
+  templateId    String?
 
   @@index([clientId])
   @@index([userId])

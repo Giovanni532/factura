@@ -25,8 +25,8 @@ const translate = (path: string) => {
       return "Factures"
     case "quotes":
       return "Devis"
-    case "settings":
-      return "Paramètres"
+    case "templates":
+      return "Style de facturation"
     default:
       return path
   }

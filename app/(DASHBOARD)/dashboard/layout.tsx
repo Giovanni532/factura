@@ -5,7 +5,8 @@ import {
 import { AppSidebar } from "@/components/SIDEBAR/app-sidebar"
 import { SiteHeader } from "@/components/SIDEBAR/site-header"
 import { cookies } from "next/headers"
-
+import { redirect } from "next/navigation"
+import { paths } from "@/paths"
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
     const allCookies = await cookies()
     const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/user`, {
@@ -18,6 +19,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
     })
 
     const user = await response.json()
+
+    if (!user) {
+        redirect(paths.auth.signIn)
+    }
 
     return (
         <SidebarProvider>
