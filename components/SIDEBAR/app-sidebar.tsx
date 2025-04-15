@@ -22,7 +22,16 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { paths } from "@/paths"
-import { useAuthStore } from "@/store/auth-store"
+
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  user: {
+    id: string
+    firstName: string
+    lastName: string
+    email: string
+    avatar: string
+  }
+}
 
 const navMain = [
   {
@@ -67,15 +76,13 @@ const navMain = [
   },
 ]
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user } = useAuthStore()
-
+export function AppSidebar({ user, ...props }: AppSidebarProps) {
   const userData = {
     id: user?.id as string,
-    firstName: user?.name?.split(" ")[0] as string,
-    lastName: user?.name?.split(" ")[1] as string,
+    firstName: user?.firstName as string,
+    lastName: user?.lastName as string,
     email: user?.email as string,
-    avatar: user?.image as string,
+    avatar: user?.avatar as string,
   }
 
   return (

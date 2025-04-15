@@ -4,11 +4,24 @@ import {
 } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/SIDEBAR/app-sidebar"
 import { SiteHeader } from "@/components/SIDEBAR/site-header"
+import { cookies } from "next/headers"
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+    const allCookies = await cookies()
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/user`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Cookie": allCookies.toString(),
+        },
+        cache: "no-store",
+    })
+
+    const user = await response.json()
+
     return (
         <SidebarProvider>
-            <AppSidebar variant="inset" />
+            <AppSidebar variant="inset" user={user} />
             <SidebarInset>
                 <SiteHeader />
                 <div className="flex flex-1 flex-col">
