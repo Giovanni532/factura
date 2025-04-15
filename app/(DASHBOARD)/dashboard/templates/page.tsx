@@ -2,6 +2,7 @@ import React from 'react'
 import { cookies } from 'next/headers'
 import DataTableTemplate from './data-table-template'
 import { cache } from 'react'
+import { Template } from '@prisma/client'
 
 // Fonction mise en cache pour récupérer les templates
 const getTemplatesData = cache(async () => {
@@ -24,6 +25,13 @@ export async function generateMetadata() {
         title: "Templates | Factura",
         description: "Gérer vos templates de factures et devis",
     }
+}
+
+export async function getStaticParams() {
+    const templates = await getTemplatesData();
+    return templates.map((template: Template) => ({
+        templateId: template.id,
+    }));
 }
 
 export default async function TemplatesPage() {

@@ -60,12 +60,13 @@ import { toast } from 'sonner'
 import { Template } from '@prisma/client'
 
 // Type pour les filtres de type de template
-type TemplateType = string;
+type TemplateType = "BOTH" | "INVOICE" | "QUOTE";
 
 // Mapping des types pour l'affichage
 const typeLabels: Record<string, { label: string, color: string }> = {
-    invoice: { label: "Facture", color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300" },
-    quote: { label: "Devis", color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300" }
+    BOTH: { label: "Tous les types", color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300" },
+    INVOICE: { label: "Facture", color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300" },
+    QUOTE: { label: "Devis", color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300" }
 };
 
 // Composant pour afficher le badge de type
@@ -121,7 +122,7 @@ export default function DataTableTemplate({ templates: initialTemplates }: { tem
     const [templateToDeleteId, setTemplateToDeleteId] = useState<string | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [typeFilter, setTypeFilter] = useState<TemplateType>('all');
+    const [typeFilter, setTypeFilter] = useState<TemplateType>("BOTH");
 
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
@@ -141,7 +142,7 @@ export default function DataTableTemplate({ templates: initialTemplates }: { tem
                 (template.description && template.description.toLowerCase().includes(searchQuery.toLowerCase()));
 
             // Filtre de type
-            const matchesType = typeFilter === 'all' || template.type === typeFilter;
+            const matchesType = typeFilter === "BOTH" || template.type === typeFilter;
 
             return matchesSearch && matchesType;
         });
@@ -266,17 +267,17 @@ export default function DataTableTemplate({ templates: initialTemplates }: { tem
                     <Select
                         value={typeFilter}
                         onValueChange={(value) => {
-                            setTypeFilter(value);
+                            setTypeFilter(value as TemplateType);
                             setCurrentPage(1); // Revenir à la première page lors d'un changement de filtre
                         }}
                     >
                         <SelectTrigger>
                             <SelectValue placeholder="Filtrer par type" />
                         </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Tous les types</SelectItem>
-                            <SelectItem value="invoice">Factures</SelectItem>
-                            <SelectItem value="quote">Devis</SelectItem>
+                        <SelectContent className="cursor-pointer">
+                            <SelectItem value="BOTH" className="cursor-pointer">Tous les types</SelectItem>
+                            <SelectItem value="INVOICE" className="cursor-pointer">Factures</SelectItem>
+                            <SelectItem value="QUOTE" className="cursor-pointer">Devis</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -333,10 +334,6 @@ export default function DataTableTemplate({ templates: initialTemplates }: { tem
                                                         <DropdownMenuContent align="end">
                                                             <DropdownMenuItem onClick={() => handleViewDetails(template.id)}>
                                                                 <Eye className="mr-2 h-4 w-4" />
-                                                                Voir les détails
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem onClick={() => router.push(`/dashboard/templates/${template.id}/edit`)}>
-                                                                <Edit className="mr-2 h-4 w-4" />
                                                                 Modifier
                                                             </DropdownMenuItem>
                                                             {!template.isDefault && (
