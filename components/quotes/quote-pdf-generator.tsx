@@ -1,4 +1,4 @@
-import { QuoteDetail, QuoteStatus } from "@/actions/quote";
+import { QuoteDetail, QuoteStatus } from "@/app/(API)/api/dashboard/quotes/route";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import jsPDF from 'jspdf';

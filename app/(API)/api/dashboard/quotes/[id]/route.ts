@@ -39,7 +39,7 @@ export async function GET(
 
     // If quote doesn't exist or doesn't belong to the user
     if (!quote) {
-        return { quote: null };
+        return NextResponse.json({ quote: null });
     }
 
     // Get the user's business info
