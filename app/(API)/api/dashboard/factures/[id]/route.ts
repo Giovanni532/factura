@@ -87,7 +87,7 @@ export async function GET(
 
     // Si la facture n'existe pas ou n'appartient pas à l'utilisateur
     if (!invoice) {
-        return { invoice: null };
+        return NextResponse.json({ invoice: null });
     }
 
     // Récupérer les informations de l'entreprise de l'utilisateur
