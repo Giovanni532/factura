@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Card, CardContent } from '../ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { Button } from '../ui/button'
@@ -98,6 +98,8 @@ interface TemplateElement {
     fontWeight?: string
     zIndex: number
     rotation?: number
+    textAlign?: 'left' | 'center' | 'right'
+    tableStyle?: 'standard' | 'compact' | 'modern' | 'minimal'
 }
 
 // Add the editor context hook
@@ -115,6 +117,10 @@ const useEditor = () => {
 const generateId = () => {
     return Math.random().toString(36).substring(2, 9)
 }
+
+// Dimensions d'une feuille A4 en pixels (à 96dpi)
+const A4_WIDTH = 795; // 210mm
+const A4_HEIGHT = 1123; // 297mm
 
 // Alias for the Image icon since it conflicts with the HTML Image element
 const ImageIcon = Image
@@ -139,6 +145,27 @@ export default function TemplateEditor({
 
     // Ref pour le canvas
     const canvasRef = useRef<HTMLDivElement>(null)
+
+    // Gestionnaire pour la suppression via le clavier
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElement) {
+                // Vérifier que l'événement ne vient pas d'un champ de texte
+                const activeElement = document.activeElement;
+                const isInputOrTextarea = activeElement instanceof HTMLInputElement ||
+                    activeElement instanceof HTMLTextAreaElement ||
+                    (activeElement && activeElement.hasAttribute('contenteditable'));
+
+                if (!isInputOrTextarea) {
+                    removeElement(selectedElement);
+                    e.preventDefault();
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [selectedElement]);
 
     // Options de couleurs
     const colorOptions = [
@@ -191,7 +218,9 @@ export default function TemplateEditor({
             fontSize: 16,
             fontWeight: 'normal',
             zIndex: elements.length + 1,
-            rotation: 0
+            rotation: 0,
+            textAlign: 'left',
+            tableStyle: 'standard'
         }
 
         // Personnaliser l'élément selon son type
@@ -281,7 +310,7 @@ export default function TemplateEditor({
     return (
         <div className="flex flex-col gap-6">
             {/* Barre d'outils et éléments disponibles */}
-            <div className="flex items-center justify-between bg-gray-100 p-2 rounded-md">
+            <div className="flex items-center justify-between p-2 rounded-md">
                 <div className="flex space-x-2">
                     <Popover>
                         <PopoverTrigger asChild>
@@ -404,7 +433,7 @@ export default function TemplateEditor({
                             <div className="space-y-3">
                                 {getSelectedElement()?.type === 'text' && (
                                     <>
-                                        <div>
+                                        <div className="flex flex-col gap-2">
                                             <Label>Texte</Label>
                                             <Textarea
                                                 value={getSelectedElement()?.content || ''}
@@ -412,7 +441,7 @@ export default function TemplateEditor({
                                                 className="h-20"
                                             />
                                         </div>
-                                        <div>
+                                        <div className="flex flex-col gap-2">
                                             <Label>Taille de police</Label>
                                             <div className="flex items-center gap-2">
                                                 <Input
@@ -429,7 +458,7 @@ export default function TemplateEditor({
                                                 <span className="text-sm">{getSelectedElement()?.fontSize}px</span>
                                             </div>
                                         </div>
-                                        <div>
+                                        <div className="flex flex-col gap-2">
                                             <Label>Style</Label>
                                             <div className="flex gap-2 mt-1">
                                                 <Button
@@ -458,7 +487,148 @@ export default function TemplateEditor({
                                     </div>
                                 )}
 
-                                <div>
+                                {getSelectedElement()?.type === 'items' && (
+                                    <>
+                                        <div className="flex flex-col gap-2">
+                                            <Label>Style du tableau</Label>
+                                            <Select
+                                                value={getSelectedElement()?.tableStyle || 'standard'}
+                                                onValueChange={(value: 'standard' | 'compact' | 'modern' | 'minimal') =>
+                                                    updateElement(selectedElement, { tableStyle: value })}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Choisir un style" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="standard">Standard</SelectItem>
+                                                    <SelectItem value="compact">Compact</SelectItem>
+                                                    <SelectItem value="modern">Moderne</SelectItem>
+                                                    <SelectItem value="minimal">Minimal</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                            <Label className="flex justify-between items-center">
+                                                <span>Produits</span>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        const items = JSON.parse(getSelectedElement()?.content || '[]');
+                                                        items.push({
+                                                            name: 'Nouveau produit',
+                                                            description: 'Description du produit',
+                                                            quantity: 1,
+                                                            unitPrice: 0
+                                                        });
+                                                        updateElement(selectedElement, {
+                                                            content: JSON.stringify(items)
+                                                        });
+                                                    }}
+                                                >
+                                                    <Plus className="h-4 w-4" />
+                                                    Ajouter
+                                                </Button>
+                                            </Label>
+                                            <div className="max-h-52 overflow-y-auto border rounded p-2 mt-1">
+                                                {JSON.parse(getSelectedElement()?.content || '[]').map((item: any, index: number) => (
+                                                    <div key={index} className="border-b pb-2 mb-2 last:border-0 last:mb-0 last:pb-0">
+                                                        <div className="flex justify-between mb-1 items-center">
+                                                            <span className="font-medium text-sm">Produit {index + 1}</span>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="h-6 w-6 p-0"
+                                                                onClick={() => {
+                                                                    const items = JSON.parse(getSelectedElement()?.content || '[]');
+                                                                    items.splice(index, 1);
+                                                                    updateElement(selectedElement, {
+                                                                        content: JSON.stringify(items)
+                                                                    });
+                                                                }}
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
+                                                        <div className="grid grid-cols-2 gap-2 mb-1">
+                                                            <div>
+                                                                <Label className="text-xs">Nom</Label>
+                                                                <Input
+                                                                    value={item.name}
+                                                                    className="text-xs h-7"
+                                                                    onChange={(e) => {
+                                                                        const items = JSON.parse(getSelectedElement()?.content || '[]');
+                                                                        items[index].name = e.target.value;
+                                                                        updateElement(selectedElement, {
+                                                                            content: JSON.stringify(items)
+                                                                        });
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <Label className="text-xs">Description</Label>
+                                                                <Input
+                                                                    value={item.description}
+                                                                    className="text-xs h-7"
+                                                                    onChange={(e) => {
+                                                                        const items = JSON.parse(getSelectedElement()?.content || '[]');
+                                                                        items[index].description = e.target.value;
+                                                                        updateElement(selectedElement, {
+                                                                            content: JSON.stringify(items)
+                                                                        });
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            <div>
+                                                                <Label className="text-xs">Quantité</Label>
+                                                                <Input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    value={item.quantity}
+                                                                    className="text-xs h-7"
+                                                                    onChange={(e) => {
+                                                                        const items = JSON.parse(getSelectedElement()?.content || '[]');
+                                                                        items[index].quantity = parseInt(e.target.value) || 0;
+                                                                        updateElement(selectedElement, {
+                                                                            content: JSON.stringify(items)
+                                                                        });
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <Label className="text-xs">Prix unitaire</Label>
+                                                                <Input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    step="0.01"
+                                                                    value={item.unitPrice}
+                                                                    className="text-xs h-7"
+                                                                    onChange={(e) => {
+                                                                        const items = JSON.parse(getSelectedElement()?.content || '[]');
+                                                                        items[index].unitPrice = parseFloat(e.target.value) || 0;
+                                                                        updateElement(selectedElement, {
+                                                                            content: JSON.stringify(items)
+                                                                        });
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+
+                                                {JSON.parse(getSelectedElement()?.content || '[]').length === 0 && (
+                                                    <div className="text-center text-gray-500 py-4 text-sm">
+                                                        Aucun produit. Cliquez sur Ajouter pour en créer un.
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+
+                                <div className="flex flex-col gap-2">
                                     <Label>Couleur</Label>
                                     <div className="grid grid-cols-3 gap-2 mt-1">
                                         {colorOptions.map((color) => (
@@ -474,6 +644,37 @@ export default function TemplateEditor({
                                                 title={color.name}
                                             />
                                         ))}
+                                    </div>
+                                </div>
+
+                                {/* Section d'alignement pour tous les types de blocs */}
+                                <div className="flex flex-col gap-2">
+                                    <Label>Alignement</Label>
+                                    <div className="flex gap-2 mt-1">
+                                        <Button
+                                            size="sm"
+                                            variant={getSelectedElement()?.textAlign === 'left' ? 'default' : 'outline'}
+                                            onClick={() => updateElement(selectedElement, { textAlign: 'left' })}
+                                            className="w-10"
+                                        >
+                                            ←
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant={getSelectedElement()?.textAlign === 'center' ? 'default' : 'outline'}
+                                            onClick={() => updateElement(selectedElement, { textAlign: 'center' })}
+                                            className="w-10"
+                                        >
+                                            ↔
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant={getSelectedElement()?.textAlign === 'right' ? 'default' : 'outline'}
+                                            onClick={() => updateElement(selectedElement, { textAlign: 'right' })}
+                                            className="w-10"
+                                        >
+                                            →
+                                        </Button>
                                     </div>
                                 </div>
 
@@ -514,7 +715,7 @@ export default function TemplateEditor({
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div>
+                                                <div className="flex flex-col gap-2">
                                                     <Label>Rotation</Label>
                                                     <div className="flex items-center gap-2">
                                                         <Input
@@ -557,11 +758,15 @@ export default function TemplateEditor({
                 {/* Canvas d'édition */}
                 <div className="md:w-3/4 w-full">
                     <Card>
-                        <CardContent className="p-0 h-[650px] relative">
+                        <CardContent className="p-4 h-[750px] overflow-auto bg-gray-100 flex justify-center">
                             <div
                                 ref={canvasRef}
-                                className="bg-white w-full h-full p-6 overflow-auto relative"
-                                style={{ borderTop: `4px solid ${selectedColor}` }}
+                                className="bg-white relative shadow-lg overflow-hidden"
+                                style={{
+                                    width: `${A4_WIDTH}px`,
+                                    height: `${A4_HEIGHT}px`,
+                                    borderTop: `4px solid ${selectedColor}`
+                                }}
                                 onClick={() => setSelectedElement(null)}
                             >
                                 {/* Éléments du template */}
@@ -572,6 +777,7 @@ export default function TemplateEditor({
                                         isSelected={selectedElement === element.id}
                                         onSelect={() => setSelectedElement(element.id)}
                                         onUpdate={(properties) => updateElement(element.id, properties)}
+                                        canvasBounds={{ width: A4_WIDTH, height: A4_HEIGHT }}
                                     />
                                 ))}
 
@@ -683,21 +889,31 @@ function DraggableElement({
     element,
     isSelected,
     onSelect,
-    onUpdate
+    onUpdate,
+    canvasBounds
 }: {
     element: TemplateElement,
     isSelected: boolean,
     onSelect: () => void,
-    onUpdate: (properties: Partial<TemplateElement>) => void
+    onUpdate: (properties: Partial<TemplateElement>) => void,
+    canvasBounds: { width: number, height: number }
 }) {
     const dragControls = useDragControls()
     const [resizing, setResizing] = useState(false)
 
     const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+        // Calculer les nouvelles positions en respectant les limites du canvas
+        let newX = element.x + info.offset.x;
+        let newY = element.y + info.offset.y;
+
+        // Empêcher l'élément de sortir des limites du canvas
+        newX = Math.max(0, Math.min(newX, canvasBounds.width - element.width));
+        newY = Math.max(0, Math.min(newY, canvasBounds.height - element.height));
+
         onUpdate({
-            x: element.x + info.offset.x,
-            y: element.y + info.offset.y
-        })
+            x: newX,
+            y: newY
+        });
     }
 
     // Empêcher la propagation du clic pour sélectionner l'élément
@@ -737,23 +953,37 @@ function DraggableElement({
             // Appliquer les changements selon la direction
             if (direction.includes('e')) {
                 newWidth = Math.max(30, startWidth + deltaX)
+                // Limiter la largeur pour ne pas dépasser le canvas
+                newWidth = Math.min(newWidth, canvasBounds.width - startPosX)
                 updates.width = newWidth
             }
             if (direction.includes('w')) {
                 const widthChange = -deltaX
                 newWidth = Math.max(30, startWidth - widthChange)
+                // Calculer la nouvelle position X
                 newX = startPosX + deltaX
+                // Limiter la position X pour ne pas sortir à gauche
+                newX = Math.max(0, newX)
+                // Recalculer la largeur en fonction de la position
+                newWidth = Math.min(newWidth, canvasBounds.width - newX)
                 updates.width = newWidth
                 updates.x = newX
             }
             if (direction.includes('s')) {
                 newHeight = Math.max(20, startHeight + deltaY)
+                // Limiter la hauteur pour ne pas dépasser le canvas
+                newHeight = Math.min(newHeight, canvasBounds.height - startPosY)
                 updates.height = newHeight
             }
             if (direction.includes('n')) {
                 const heightChange = -deltaY
                 newHeight = Math.max(20, startHeight - heightChange)
+                // Calculer la nouvelle position Y
                 newY = startPosY + deltaY
+                // Limiter la position Y pour ne pas sortir en haut
+                newY = Math.max(0, newY)
+                // Recalculer la hauteur en fonction de la position
+                newHeight = Math.min(newHeight, canvasBounds.height - newY)
                 updates.height = newHeight
                 updates.y = newY
             }
@@ -799,7 +1029,9 @@ function DraggableElement({
                 <p style={{
                     color: element.color,
                     fontSize: `${element.fontSize}px`,
-                    fontWeight: element.fontWeight
+                    fontWeight: element.fontWeight,
+                    textAlign: element.textAlign || 'left',
+                    width: '100%'
                 }}>
                     {element.content}
                 </p>
@@ -810,8 +1042,10 @@ function DraggableElement({
             )}
 
             {element.type === 'company' && (
-                <div className="p-2">
-                    <Image src={JSON.parse(element.content).logoUrl} alt="Image business" width={100} height={100} />
+                <div className="p-2 w-full" style={{ textAlign: element.textAlign || 'left' }}>
+                    <div className="flex justify-center mb-2" style={{ justifyContent: element.textAlign === 'left' ? 'flex-start' : element.textAlign === 'right' ? 'flex-end' : 'center' }}>
+                        <Image src={JSON.parse(element.content).logoUrl} alt="Image business" width={100} height={100} />
+                    </div>
                     <div className="text-lg font-bold" style={{ color: element.color }}>
                         {JSON.parse(element.content).name}
                     </div>
@@ -824,7 +1058,7 @@ function DraggableElement({
             )}
 
             {element.type === 'client' && (
-                <div className="p-2">
+                <div className="p-2 w-full" style={{ textAlign: element.textAlign || 'left' }}>
                     <div className="text-sm font-semibold uppercase text-gray-500 mb-1">
                         Adressé à:
                     </div>
@@ -838,33 +1072,115 @@ function DraggableElement({
             )}
 
             {element.type === 'items' && (
-                <div className="w-full overflow-x-auto">
-                    <table className="w-full text-left text-xs">
+                <div className="w-full overflow-x-auto" style={{ textAlign: element.textAlign || 'left' }}>
+                    <table className={cn(
+                        "w-full text-left text-xs",
+                        element.tableStyle === 'modern' && "border-collapse border-0 shadow-sm",
+                        element.tableStyle === 'compact' && "border-collapse border",
+                        element.tableStyle === 'minimal' && "border-collapse border-0"
+                    )} style={{
+                        margin: element.textAlign === 'center' ? '0 auto' : element.textAlign === 'right' ? '0 0 0 auto' : '0'
+                    }}>
                         <thead>
-                            <tr className="border-b text-xs uppercase text-gray-500">
-                                <th className="py-2 pr-2">Article</th>
-                                <th className="p-2">Description</th>
-                                <th className="p-2 text-right">Qté</th>
-                                <th className="p-2 text-right">Prix unit.</th>
-                                <th className="p-2 text-right">Total</th>
+                            <tr className={cn(
+                                element.tableStyle === 'standard' && "border-b text-xs uppercase text-gray-500",
+                                element.tableStyle === 'modern' && "bg-gray-100 text-xs uppercase",
+                                element.tableStyle === 'compact' && "border-b bg-gray-50 text-xs uppercase",
+                                element.tableStyle === 'minimal' && "border-b-2 text-xs uppercase"
+                            )}>
+                                <th className={cn(
+                                    element.tableStyle === 'standard' && "py-2 pr-2",
+                                    element.tableStyle === 'modern' && "p-3",
+                                    element.tableStyle === 'compact' && "p-1 border",
+                                    element.tableStyle === 'minimal' && "py-2 pr-2"
+                                )}>Article</th>
+                                <th className={cn(
+                                    element.tableStyle === 'standard' && "p-2",
+                                    element.tableStyle === 'modern' && "p-3",
+                                    element.tableStyle === 'compact' && "p-1 border",
+                                    element.tableStyle === 'minimal' && "p-2"
+                                )}>Description</th>
+                                <th className={cn(
+                                    element.tableStyle === 'standard' && "p-2 text-right",
+                                    element.tableStyle === 'modern' && "p-3 text-right",
+                                    element.tableStyle === 'compact' && "p-1 border text-right",
+                                    element.tableStyle === 'minimal' && "p-2 text-right"
+                                )}>Qté</th>
+                                <th className={cn(
+                                    element.tableStyle === 'standard' && "p-2 text-right",
+                                    element.tableStyle === 'modern' && "p-3 text-right",
+                                    element.tableStyle === 'compact' && "p-1 border text-right",
+                                    element.tableStyle === 'minimal' && "p-2 text-right"
+                                )}>Prix unit.</th>
+                                <th className={cn(
+                                    element.tableStyle === 'standard' && "p-2 text-right",
+                                    element.tableStyle === 'modern' && "p-3 text-right",
+                                    element.tableStyle === 'compact' && "p-1 border text-right",
+                                    element.tableStyle === 'minimal' && "p-2 text-right"
+                                )}>Total</th>
                             </tr>
                         </thead>
                         <tbody>
                             {JSON.parse(element.content).map((item: any, index: number) => (
-                                <tr key={index} className="border-b text-gray-800">
-                                    <td className="py-2 pr-2 font-medium">{item.name}</td>
-                                    <td className="p-2 text-gray-500">{item.description}</td>
-                                    <td className="p-2 text-right">{item.quantity}</td>
-                                    <td className="p-2 text-right">{item.unitPrice.toFixed(2)} €</td>
-                                    <td className="p-2 text-right">{(item.quantity * item.unitPrice).toFixed(2)} €</td>
+                                <tr key={index} className={cn(
+                                    element.tableStyle === 'standard' && "border-b text-gray-800",
+                                    element.tableStyle === 'modern' && "border-b text-gray-800 hover:bg-gray-50",
+                                    element.tableStyle === 'compact' && "border-b text-gray-800",
+                                    element.tableStyle === 'minimal' && "border-b text-gray-800"
+                                )}>
+                                    <td className={cn(
+                                        element.tableStyle === 'standard' && "py-2 pr-2 font-medium",
+                                        element.tableStyle === 'modern' && "p-3 font-medium",
+                                        element.tableStyle === 'compact' && "p-1 border font-medium",
+                                        element.tableStyle === 'minimal' && "py-2 pr-2 font-medium"
+                                    )}>{item.name}</td>
+                                    <td className={cn(
+                                        element.tableStyle === 'standard' && "p-2 text-gray-500",
+                                        element.tableStyle === 'modern' && "p-3 text-gray-500",
+                                        element.tableStyle === 'compact' && "p-1 border text-gray-500",
+                                        element.tableStyle === 'minimal' && "p-2 text-gray-500"
+                                    )}>{item.description}</td>
+                                    <td className={cn(
+                                        element.tableStyle === 'standard' && "p-2 text-right",
+                                        element.tableStyle === 'modern' && "p-3 text-right",
+                                        element.tableStyle === 'compact' && "p-1 border text-right",
+                                        element.tableStyle === 'minimal' && "p-2 text-right"
+                                    )}>{item.quantity}</td>
+                                    <td className={cn(
+                                        element.tableStyle === 'standard' && "p-2 text-right",
+                                        element.tableStyle === 'modern' && "p-3 text-right",
+                                        element.tableStyle === 'compact' && "p-1 border text-right",
+                                        element.tableStyle === 'minimal' && "p-2 text-right"
+                                    )}>{item.unitPrice.toFixed(2)} €</td>
+                                    <td className={cn(
+                                        element.tableStyle === 'standard' && "p-2 text-right",
+                                        element.tableStyle === 'modern' && "p-3 text-right",
+                                        element.tableStyle === 'compact' && "p-1 border text-right",
+                                        element.tableStyle === 'minimal' && "p-2 text-right"
+                                    )}>{(item.quantity * item.unitPrice).toFixed(2)} €</td>
                                 </tr>
                             ))}
                         </tbody>
                         <tfoot>
-                            <tr>
-                                <td colSpan={3}></td>
-                                <td className="p-2 text-right font-medium">Total:</td>
-                                <td className="p-2 text-right font-bold">
+                            <tr className={cn(
+                                element.tableStyle === 'modern' && "bg-gray-50",
+                                element.tableStyle === 'compact' && "border-t"
+                            )}>
+                                <td colSpan={3} className={cn(
+                                    element.tableStyle === 'compact' && "border"
+                                )}></td>
+                                <td className={cn(
+                                    element.tableStyle === 'standard' && "p-2 text-right font-medium",
+                                    element.tableStyle === 'modern' && "p-3 text-right font-medium",
+                                    element.tableStyle === 'compact' && "p-1 border text-right font-medium",
+                                    element.tableStyle === 'minimal' && "p-2 text-right font-medium"
+                                )}>Total:</td>
+                                <td className={cn(
+                                    element.tableStyle === 'standard' && "p-2 text-right font-bold",
+                                    element.tableStyle === 'modern' && "p-3 text-right font-bold",
+                                    element.tableStyle === 'compact' && "p-1 border text-right font-bold",
+                                    element.tableStyle === 'minimal' && "p-2 text-right font-bold"
+                                )}>
                                     {JSON.parse(element.content).reduce((sum: number, item: any) =>
                                         sum + (item.quantity * item.unitPrice), 0).toFixed(2)} €
                                 </td>
@@ -876,8 +1192,11 @@ function DraggableElement({
 
             {element.type === 'footer' && (
                 <div
-                    className="w-full text-center text-sm text-gray-500 border-t pt-2"
-                    style={{ color: element.color }}
+                    className="w-full text-sm text-gray-500 border-t pt-2"
+                    style={{
+                        color: element.color,
+                        textAlign: element.textAlign || 'center'
+                    }}
                 >
                     {element.content}
                 </div>

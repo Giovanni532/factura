@@ -27,6 +27,10 @@ const translate = (path: string) => {
       return "Devis"
     case "templates":
       return "Style de facturation"
+    case "create":
+      return "Créer"
+    case "edit":
+      return "Modifier"
     default:
       return path
   }
