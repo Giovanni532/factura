@@ -42,11 +42,12 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
 import { paths } from "@/paths"
-import { Quote, duplicateQuote, deleteQuote, getQuoteById } from "@/actions/quote"
+import { duplicateQuote, deleteQuote, getQuoteById } from "@/actions/quote"
 import { useAction } from "@/hooks/use-action"
 import { toast } from "sonner"
 import { QuotePdfGenerator } from "@/components/quotes/quote-pdf-generator"
 import { formatCurrency } from "@/lib/utils"
+import { Quote } from "@/app/(API)/api/dashboard/quotes/route"
 
 // Types
 type DevisStatus = "DRAFT" | "SENT" | "ACCEPTED" | "REJECTED" | "CONVERTED"

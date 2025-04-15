@@ -11,6 +11,7 @@ import {
     updateQuoteSchema,
     createQuoteSchema
 } from "@/validations/quotes-schema";
+import { QuoteDetail, QuoteStatus } from "@/app/(API)/api/dashboard/quotes/route";
 
 
 // Server action to get a specific quote by ID
@@ -130,6 +131,9 @@ export const updateQuote = useMutation(
     updateQuoteSchema,
     async (input, { userId }) => {
         try {
+            console.log("UpdateQuote called with inputs:", JSON.stringify(input, null, 2));
+            console.log("User ID:", userId);
+
             // First check if the quote exists and belongs to the user
             const existingQuote = await prisma.quote.findUnique({
                 where: {
@@ -200,100 +204,44 @@ export const updateQuote = useMutation(
                     }
                 });
 
-                // Get the map of existing quote items by ID for reference
-                const existingItemsMap = existingQuote.quoteItems.reduce((map, item) => {
-                    map[item.id] = item;
-                    return map;
-                }, {} as Record<string, any>);
+                // Delete all existing quote items first
+                await tx.quoteItem.deleteMany({
+                    where: {
+                        quoteId: input.id
+                    }
+                });
 
-                // 1. Identify items to delete (items in DB but not in the input)
-                const inputItemIds = new Set(input.items.map(item => item.id));
-                const itemIdsToDelete = existingQuote.quoteItems
-                    .filter(item => !inputItemIds.has(item.id))
-                    .map(item => item.id);
-
-                // Delete items that are no longer in the input
-                if (itemIdsToDelete.length > 0) {
-                    await tx.quoteItem.deleteMany({
+                // Create all items from the input
+                const createdItems = [];
+                for (const item of input.items) {
+                    const product = await tx.item.findUnique({
                         where: {
-                            id: { in: itemIdsToDelete }
+                            id: item.productId,
+                            userId // Ensure the product belongs to the user
                         }
                     });
-                }
 
-                // 2. Process each item from the input
-                for (const item of input.items) {
-                    // Check if this is an existing item that we need to update
-                    if (existingItemsMap[item.id]) {
-                        // This is an existing item
-                        const existingItem = existingItemsMap[item.id];
+                    if (!product) {
+                        continue; // Skip this item if product doesn't exist
+                    }
 
-                        // Vérifier si le produit associé à cet item a changé
-                        const productHasChanged = existingItem.itemId !== item.productId;
-
-                        if (productHasChanged) {
-                            // Si le produit a changé, vérifier d'abord que le nouveau produit existe
-                            const newProduct = await tx.item.findUnique({
-                                where: {
-                                    id: item.productId,
-                                    userId
-                                }
-                            });
-
-                            if (!newProduct) {
-                                // Si le produit n'existe pas, continuer sans changer l'item
-                                await tx.quoteItem.update({
-                                    where: { id: item.id },
-                                    data: {
-                                        quantity: item.quantity,
-                                        unitPrice: item.unitPrice,
-                                    }
-                                });
-                            } else {
-                                // Si le produit existe, mettre à jour l'item avec le nouveau produit
-                                await tx.quoteItem.update({
-                                    where: { id: item.id },
-                                    data: {
-                                        itemId: item.productId, // Mettre à jour l'ID du produit
-                                        quantity: item.quantity,
-                                        unitPrice: item.unitPrice,
-                                    }
-                                });
-                            }
-                        } else {
-                            // Si le produit n'a pas changé, mettre à jour seulement les quantités et prix
-                            await tx.quoteItem.update({
-                                where: { id: item.id },
-                                data: {
-                                    quantity: item.quantity,
-                                    unitPrice: item.unitPrice,
-                                }
-                            });
-                        }
-                    } else {
-                        // This is a new item, verify the product exists first
-                        const product = await tx.item.findUnique({
-                            where: {
-                                id: item.productId,
-                                userId // Ensure the product belongs to the user
-                            }
-                        });
-
-                        if (!product) {
-                            continue; // Skip this item if product doesn't exist
-                        }
-
-                        // Create the new quote item
-                        await tx.quoteItem.create({
+                    // Create the quote item
+                    try {
+                        // NOTE: "productId" from frontend maps to "itemId" in the database schema
+                        const newItem = await tx.quoteItem.create({
                             data: {
                                 quoteId: input.id,
-                                itemId: item.productId,
+                                itemId: item.productId, // Important: "productId" in frontend maps to "itemId" in database
                                 quantity: item.quantity,
                                 unitPrice: item.unitPrice
                             }
                         });
+                        createdItems.push(newItem);
+                    } catch (error) {
+                        console.error(`Error creating quote item: ${error}`);
                     }
                 }
+
 
                 return {
                     success: true,
@@ -457,7 +405,6 @@ export const createQuote = useMutation(
                     itemId: item.itemId,
                     quantity: item.quantity,
                     unitPrice: item.unitPrice,
-                    // Nous pourrions stocker la description temporaire ici si nécessaire
                     // description: item.description,
                 }));
 

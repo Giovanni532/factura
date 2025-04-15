@@ -1,7 +1,5 @@
 import React from 'react'
 import EditDevisPage from './quote-edit'
-import { getQuoteById } from '@/actions/quote'
-import { getProductsByUserId } from '@/actions/produit'
 import { cache } from 'react'
 import { cookies } from 'next/headers'
 // Fonction mise en cache pour récupérer les données nécessaires à l'édition d'un devis
@@ -52,10 +50,17 @@ const getQuoteEditData = cache(async (quoteId: string, userId: string) => {
 
 export async function generateMetadata({ params }: { params: Promise<{ quoteId: string }> }) {
     const { quoteId } = await params;
-    const quote = await getQuoteById({ id: quoteId });
+    const allCookies = await cookies()
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/quotes/${quoteId}`, {
+        credentials: 'include',
+        headers: {
+            Cookie: allCookies.toString(),
+        },
+    })
+    const { quote } = await response.json();
     return {
-        title: `Devis | Factura (${quote?.data?.quote?.id})`,
-        description: `Modifier le devis ${quote?.data?.quote?.id}`,
+        title: `Devis | Factura (${quote?.id})`,
+        description: `Modifier le devis ${quote?.id}`,
     }
 }
 

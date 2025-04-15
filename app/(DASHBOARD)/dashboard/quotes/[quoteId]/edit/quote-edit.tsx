@@ -280,21 +280,32 @@ export default function EditDevisPage({ quote, clients, products }: EditDevisPag
             return;
         }
 
+        // Assurons-nous que createdAt et dueDate sont bien des objets Date
+        const createdAtDate = createdAt instanceof Date ? createdAt : new Date(createdAt);
+        const dueDateDate = dueDate instanceof Date ? dueDate : new Date(dueDate);
+
         // Préparer les données du formulaire
         const formData = {
             id: quote.id,
             clientId,
-            createdAt,
-            dueDate,
+            createdAt: createdAtDate,
+            dueDate: dueDateDate,
             status,
-            items,
+            items: items.map(item => ({
+                id: item.id,
+                productId: item.productId,
+                name: item.name,
+                description: item.description || "",
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                taxRate: item.taxRate,
+            })),
             discount: discountValue > 0 ? {
                 type: discountType,
                 value: discountValue,
             } : undefined,
             notes,
         };
-
         // Exécuter l'action serveur
         executeUpdateQuote(formData);
     }

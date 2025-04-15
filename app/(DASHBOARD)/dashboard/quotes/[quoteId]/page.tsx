@@ -1,5 +1,4 @@
 import React from 'react'
-import { getQuoteById } from '@/actions/quote'
 import QuoteDetailPage from './quote-detail';
 import { cache } from 'react'
 import { cookies } from 'next/headers'
