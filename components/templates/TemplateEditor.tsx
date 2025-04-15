@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react'
+import React, { useState, useRef } from 'react'
 import { Card, CardContent } from '../ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { Button } from '../ui/button'
@@ -14,20 +14,11 @@ import {
 } from '../ui/select'
 import { cn } from '@/lib/utils'
 import {
-    Loader2, Plus, Trash2, Move, Edit2, Type, Image,
+    Loader2, Plus, Trash2, Move, Type,
     Building, User, ShoppingCart, FileText, Palette,
-    ArrowUpDown,
-    Bold,
-    ChevronDown,
-    CornerDownRight,
-    CreditCard,
-    Italic,
-    Layers,
-    LayoutPanelLeft,
-    ListOrdered,
-    BookOpen,
     UserCircle,
-    ListChecks
+    ListChecks,
+    ImagesIcon
 } from 'lucide-react'
 import { motion, useDragControls, PanInfo } from 'framer-motion'
 import {
@@ -45,17 +36,9 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "../ui/accordion"
-import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-} from "@/components/ui/sheet"
+
 import { toast } from 'sonner'
-import tinycolor2 from "tinycolor2"
-import Image2 from 'next/image'
+import Image from 'next/image'
 
 // Example company data
 const exampleCompany = {
@@ -71,13 +54,13 @@ const exampleCompany = {
 
 // Example client data
 const exampleClient = {
-    name: 'Client Name',
-    company: 'Client Company',
+    name: 'Jane Doe',
+    company: 'Factura Inc.',
     address: '456 Client Ave',
     city: 'Clientville',
     postalCode: '67890',
     country: 'Country',
-    email: 'client@example.com',
+    email: 'jane.doe@factura.com',
     phone: '+1 098 765 4321',
 }
 
@@ -94,6 +77,8 @@ type TemplateEditorProps = {
     onSave?: (data: any) => void
     onCancel?: () => void
     isSubmitting?: boolean
+    businessData?: any
+    userData?: any
 }
 
 // Types d'éléments qu'on peut ajouter au template
@@ -139,7 +124,9 @@ export default function TemplateEditor({
     templateType = 'BOTH',
     onSave,
     onCancel,
-    isSubmitting = false
+    isSubmitting = false,
+    businessData,
+    userData
 }: TemplateEditorProps) {
     // État local du canvas
     const [selectedColor, setSelectedColor] = useState('#0f766e')
@@ -147,7 +134,6 @@ export default function TemplateEditor({
     const [templateName, setTemplateName] = useState(initialData?.name || '')
     const [templateDescription, setTemplateDescription] = useState(initialData?.description || '')
     const [templateTypeState, setTemplateTypeState] = useState(templateType)
-    const [activeTab, setActiveTab] = useState('design')
     const [elements, setElements] = useState<TemplateElement[]>([])
     const [selectedElement, setSelectedElement] = useState<string | null>(null)
 
@@ -211,17 +197,40 @@ export default function TemplateEditor({
         // Personnaliser l'élément selon son type
         switch (type) {
             case 'company':
+                // Utiliser les données de l'entreprise si disponibles, sinon utiliser l'exemple
+                const companyData = businessData ? {
+                    name: businessData.name || 'Your Company',
+                    address: businessData.address || '',
+                    city: businessData.city || '',
+                    postalCode: businessData.postalCode || '',
+                    country: businessData.country || '',
+                    email: businessData.email || '',
+                    logoUrl: businessData.logoUrl || '/placeholder-logo.png',
+                } : exampleCompany;
+
                 newElement = {
                     ...newElement,
-                    content: JSON.stringify(exampleCompany),
+                    content: JSON.stringify(companyData),
                     width: 250,
                     height: 130
                 }
                 break
             case 'client':
+                // Utiliser les données de l'utilisateur connecté pour le client
+                const clientData = userData ? {
+                    name: `${userData.firstName || ''} ${userData.lastName || ''}` || 'Nom du client',
+                    company: businessData?.name || 'Société du client',
+                    address: userData.address || 'Adresse du client',
+                    city: userData.city || 'Ville',
+                    postalCode: userData.postalCode || 'Code postal',
+                    country: userData.country || 'Pays',
+                    email: userData.email || 'client@example.com',
+                    phone: userData.phone || '+33 1 23 45 67 89',
+                } : exampleClient;
+
                 newElement = {
                     ...newElement,
-                    content: JSON.stringify(exampleClient),
+                    content: JSON.stringify(clientData),
                     width: 250,
                     height: 130
                 }
@@ -297,15 +306,6 @@ export default function TemplateEditor({
                                     >
                                         <Type className="h-4 w-4" />
                                         <span className="text-xs">Texte</span>
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => addElement('image')}
-                                        className="flex flex-col items-center gap-1 h-auto py-2"
-                                    >
-                                        <Image className="h-4 w-4" />
-                                        <span className="text-xs">Image</span>
                                     </Button>
                                     <Button
                                         variant="outline"
@@ -415,7 +415,7 @@ export default function TemplateEditor({
                                         <div>
                                             <Label>Taille de police</Label>
                                             <div className="flex items-center gap-2">
-                                                <input
+                                                <Input
                                                     type="range"
                                                     min={8}
                                                     max={48}
@@ -482,14 +482,14 @@ export default function TemplateEditor({
                                         <AccordionTrigger>Dimensions</AccordionTrigger>
                                         <AccordionContent>
                                             <div className="space-y-3">
-                                                <div className="grid grid-cols-2 gap-2">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                     <div>
                                                         <Label>Largeur</Label>
                                                         <div className="flex items-center gap-2">
-                                                            <input
+                                                            <Input
                                                                 type="number"
                                                                 min={10}
-                                                                value={getSelectedElement()?.width || 100}
+                                                                value={Math.round(getSelectedElement()?.width || 100)}
                                                                 onChange={(e) => updateElement(selectedElement, {
                                                                     width: parseInt(e.target.value)
                                                                 })}
@@ -501,10 +501,10 @@ export default function TemplateEditor({
                                                     <div>
                                                         <Label>Hauteur</Label>
                                                         <div className="flex items-center gap-2">
-                                                            <input
+                                                            <Input
                                                                 type="number"
                                                                 min={10}
-                                                                value={getSelectedElement()?.height || 100}
+                                                                value={Math.round(getSelectedElement()?.height || 100)}
                                                                 onChange={(e) => updateElement(selectedElement, {
                                                                     height: parseInt(e.target.value)
                                                                 })}
@@ -517,7 +517,7 @@ export default function TemplateEditor({
                                                 <div>
                                                     <Label>Rotation</Label>
                                                     <div className="flex items-center gap-2">
-                                                        <input
+                                                        <Input
                                                             type="range"
                                                             min={0}
                                                             max={360}
@@ -691,6 +691,7 @@ function DraggableElement({
     onUpdate: (properties: Partial<TemplateElement>) => void
 }) {
     const dragControls = useDragControls()
+    const [resizing, setResizing] = useState(false)
 
     const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         onUpdate({
@@ -705,9 +706,77 @@ function DraggableElement({
         onSelect()
     }
 
+    // Gestionnaires de redimensionnement
+    const startResize = (e: React.MouseEvent, direction: string) => {
+        e.stopPropagation()
+        e.preventDefault()
+
+        setResizing(true)
+
+        const startX = e.clientX
+        const startY = e.clientY
+        const startWidth = element.width
+        const startHeight = element.height
+        const startPosX = element.x
+        const startPosY = element.y
+
+        const handleMouseMove = (moveEvent: MouseEvent) => {
+            moveEvent.preventDefault() // Éviter les comportements par défaut du navigateur
+
+            // Calculer les deltas par rapport à la position initiale
+            const deltaX = moveEvent.clientX - startX
+            const deltaY = moveEvent.clientY - startY
+
+            let newWidth = startWidth
+            let newHeight = startHeight
+            let newX = startPosX
+            let newY = startPosY
+
+            const updates: Partial<TemplateElement> = {}
+
+            // Appliquer les changements selon la direction
+            if (direction.includes('e')) {
+                newWidth = Math.max(30, startWidth + deltaX)
+                updates.width = newWidth
+            }
+            if (direction.includes('w')) {
+                const widthChange = -deltaX
+                newWidth = Math.max(30, startWidth - widthChange)
+                newX = startPosX + deltaX
+                updates.width = newWidth
+                updates.x = newX
+            }
+            if (direction.includes('s')) {
+                newHeight = Math.max(20, startHeight + deltaY)
+                updates.height = newHeight
+            }
+            if (direction.includes('n')) {
+                const heightChange = -deltaY
+                newHeight = Math.max(20, startHeight - heightChange)
+                newY = startPosY + deltaY
+                updates.height = newHeight
+                updates.y = newY
+            }
+
+            // Appliquer les mises à jour en une seule fois
+            if (Object.keys(updates).length > 0) {
+                onUpdate(updates)
+            }
+        }
+
+        const handleMouseUp = () => {
+            setResizing(false)
+            window.removeEventListener('mousemove', handleMouseMove)
+            window.removeEventListener('mouseup', handleMouseUp)
+        }
+
+        window.addEventListener('mousemove', handleMouseMove)
+        window.addEventListener('mouseup', handleMouseUp)
+    }
+
     return (
         <motion.div
-            drag
+            drag={!resizing}
             dragControls={dragControls}
             dragMomentum={false}
             dragElastic={0}
@@ -736,25 +805,20 @@ function DraggableElement({
                 </p>
             )}
 
-            {element.type === 'image' && (
-                <div className="bg-gray-200 w-full h-full flex items-center justify-center">
-                    <Image className="h-1/3 w-1/3 text-gray-400" />
-                </div>
-            )}
-
             {element.type === 'line' && (
                 <div className="w-full h-[2px]" style={{ background: element.color }}></div>
             )}
 
             {element.type === 'company' && (
                 <div className="p-2">
+                    <Image src={JSON.parse(element.content).logoUrl} alt="Image business" width={100} height={100} />
                     <div className="text-lg font-bold" style={{ color: element.color }}>
                         {JSON.parse(element.content).name}
                     </div>
                     <div className="text-sm text-gray-500">
                         {JSON.parse(element.content).address}<br />
                         {JSON.parse(element.content).city}, {JSON.parse(element.content).postalCode}<br />
-                        {JSON.parse(element.content).email} | {JSON.parse(element.content).phone}
+                        {JSON.parse(element.content).email}
                     </div>
                 </div>
             )}
@@ -820,15 +884,35 @@ function DraggableElement({
             )}
 
             {isSelected && (
-                <div className="absolute -top-4 -left-4 bg-blue-500 text-white p-1 rounded-full">
-                    <Move className="h-3 w-3" />
-                </div>
+                <>
+                    <div className="absolute -top-4 -left-4 bg-blue-500 text-white p-1 rounded-full">
+                        <Move className="h-3 w-3" />
+                    </div>
+
+                    {/* Poignées de redimensionnement */}
+                    <div className="absolute -bottom-2 -right-2 w-4 h-4 bg-blue-500 rounded-full cursor-se-resize"
+                        onMouseDown={(e) => startResize(e, 'se')} />
+                    <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-500 rounded-full cursor-s-resize"
+                        onMouseDown={(e) => startResize(e, 's')} />
+                    <div className="absolute -right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-500 rounded-full cursor-e-resize"
+                        onMouseDown={(e) => startResize(e, 'e')} />
+                    <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-blue-500 rounded-full cursor-sw-resize"
+                        onMouseDown={(e) => startResize(e, 'sw')} />
+                    <div className="absolute -top-2 -right-2 w-4 h-4 bg-blue-500 rounded-full cursor-ne-resize"
+                        onMouseDown={(e) => startResize(e, 'ne')} />
+                    <div className="absolute -top-2 -left-2 w-4 h-4 bg-blue-500 rounded-full cursor-nw-resize"
+                        onMouseDown={(e) => startResize(e, 'nw')} />
+                    <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-500 rounded-full cursor-n-resize"
+                        onMouseDown={(e) => startResize(e, 'n')} />
+                    <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-500 rounded-full cursor-w-resize"
+                        onMouseDown={(e) => startResize(e, 'w')} />
+                </>
             )}
         </motion.div>
     )
 }
 
-function ToolbarSection() {
+function ToolbarSection({ businessData, userData }: { businessData?: any, userData?: any }) {
     const editor = useEditor()
 
     const addPredefinedBlock = (type: string) => {
@@ -836,10 +920,22 @@ function ToolbarSection() {
 
         switch (type) {
             case 'company':
+                // Use business data if available
+                let companyContent = 'Your Company Name\nAddress Line 1\nAddress Line 2\nCity, State ZIP\nPhone: (123) 456-7890\nEmail: contact@company.com'
+
+                if (businessData) {
+                    companyContent = `${businessData.name || 'Your Company Name'}\n`;
+                    companyContent += `${businessData.address || 'Address Line 1'}\n`;
+                    companyContent += `${businessData.city || 'City'}, ${businessData.postalCode || 'Postal Code'}\n`;
+                    companyContent += `${businessData.country || 'Country'}\n`;
+                    companyContent += `Phone: ${userData?.phone || '(123) 456-7890'}\n`;
+                    companyContent += `Email: ${userData?.email || 'contact@company.com'}`;
+                }
+
                 blockProps = {
                     id: generateId(),
                     type: 'text',
-                    content: 'Your Company Name\nAddress Line 1\nAddress Line 2\nCity, State ZIP\nPhone: (123) 456-7890\nEmail: contact@company.com',
+                    content: companyContent,
                     position: { x: 50, y: 50 },
                     size: { width: 300, height: 120 },
                     style: { fontSize: 12, textAlign: 'left', fontWeight: 'normal' }
@@ -848,10 +944,24 @@ function ToolbarSection() {
                 break
 
             case 'client':
+                // Use client data from the connected user
+                let clientContent = 'Bill To:';
+
+                if (userData) {
+                    clientContent += `\n${userData.firstName || ''} ${userData.lastName || ''}`.trim();
+                    clientContent += `\n${userData.address || ''}`;
+                    clientContent += `\n${userData.city || ''}, ${userData.postalCode || ''}`;
+                    clientContent += `\n${userData.country || ''}`;
+                    clientContent += `\n${userData.phone || ''}`;
+                    clientContent += `\n${userData.email || ''}`;
+                } else {
+                    clientContent += '\n[Client Name]\n[Client Address Line 1]\n[Client Address Line 2]\n[City, State ZIP]\n[Phone]\n[Email]';
+                }
+
                 blockProps = {
                     id: generateId(),
                     type: 'text',
-                    content: 'Bill To:\n[Client Name]\n[Client Address Line 1]\n[Client Address Line 2]\n[City, State ZIP]\n[Phone]\n[Email]',
+                    content: clientContent,
                     position: { x: 50, y: 200 },
                     size: { width: 300, height: 120 },
                     style: { fontSize: 12, textAlign: 'left', fontWeight: 'normal' }
@@ -922,7 +1032,7 @@ function ToolbarSection() {
                             style: {}
                         })
                     }}>
-                        <Image className="mr-2 h-4 w-4" />
+                        <ImagesIcon className="mr-2 h-4 w-4" />
                         <span>Image</span>
                     </Button>
                 </TabsContent>

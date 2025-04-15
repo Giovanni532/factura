@@ -12,7 +12,7 @@ import { useAction } from "@/hooks/use-action"
 import { paths } from "@/paths"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
-export default function TemplateCreateClientPage() {
+export default function TemplateCreateClientPage({ business }: { business: any }) {
     const router = useRouter()
 
     // Utiliser le hook useAction pour la server action
@@ -80,6 +80,7 @@ export default function TemplateCreateClientPage() {
                                 onSave={handleSubmit}
                                 onCancel={handleCancel}
                                 isSubmitting={isSubmitting}
+                                businessData={business}
                             />
                         </CardContent>
                     </Card>
