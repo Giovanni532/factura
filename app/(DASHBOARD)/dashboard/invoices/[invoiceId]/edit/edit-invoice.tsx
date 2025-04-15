@@ -240,6 +240,7 @@ export default function EditInvoicePage({ invoice, clients, products }: EditInvo
     // Utilisation du hook useAction pour gérer l'action serveur updateInvoice
     const { execute: executeUpdateInvoice, isLoading } = useAction(updateInvoice, {
         onSuccess: (response) => {
+            console.log("Success:", response);
             // Check if the data contains what we expect from a successful update
             if (response?.data && 'success' in response.data && response.data.success) {
                 toast.success("Facture mise à jour avec succès");
@@ -261,11 +262,13 @@ export default function EditInvoicePage({ invoice, clients, products }: EditInvo
             return;
         }
 
+        const dueDateObj = dueDate instanceof Date ? dueDate : new Date(dueDate);
+
         // Préparer les données du formulaire
         const formData = {
             id: invoice.id,
             clientId,
-            dueDate,
+            dueDate: dueDateObj,
             status,
             items: items.map(item => ({
                 id: item.id,
@@ -275,6 +278,7 @@ export default function EditInvoicePage({ invoice, clients, products }: EditInvo
             })),
             vatRate,
         };
+
 
         // Exécuter l'action serveur
         executeUpdateInvoice(formData);

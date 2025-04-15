@@ -133,8 +133,10 @@ export const updateInvoice = useMutation(
             const existingItemIds = new Set(existingInvoice.invoiceItems.map(item => item.id));
 
             // Séparer les éléments à créer, mettre à jour ou supprimer
-            const itemsToCreate = data.items.filter(item => !item.id);
-            const itemsToUpdate = data.items.filter(item => item.id && existingItemIds.has(item.id));
+            // Un item est nouveau s'il n'a pas d'ID ou s'il a un ID temporaire (commençant par 'new-item-')
+            const itemsToCreate = data.items.filter(item => !item.id || (typeof item.id === 'string' && item.id.startsWith('new-item-')));
+            const itemsToUpdate = data.items.filter(item => item.id && !item.id.toString().startsWith('new-item-') && existingItemIds.has(item.id));
+
             const itemIdsToKeep = new Set(itemsToUpdate.map(item => item.id));
             const itemIdsToDelete = Array.from(existingItemIds).filter(id => !itemIdsToKeep.has(id as string));
 
