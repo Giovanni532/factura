@@ -16,7 +16,8 @@ export async function GET(
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const invoice = await prisma.invoice.findUnique({
+    // First try to find the invoice directly
+    let invoice = await prisma.invoice.findUnique({
         where: {
             id,
             userId: session.user.id
@@ -37,9 +38,53 @@ export async function GET(
                 include: {
                     businesses: true
                 }
-            }
+            },
+            createdFrom: true // Include the quote if this invoice was created from a quote
         }
     });
+
+    // If invoice not found, check if there's a quote with this ID that has been converted to an invoice
+    if (!invoice) {
+        const quote = await prisma.quote.findUnique({
+            where: {
+                id,
+                userId: session.user.id,
+                status: 'CONVERTED' // Only converted quotes
+            },
+            include: {
+                convertedTo: {
+                    include: {
+                        client: true,
+                        invoiceItems: {
+                            include: {
+                                item: true
+                            }
+                        },
+                        payments: {
+                            orderBy: {
+                                paidAt: 'desc'
+                            }
+                        },
+                        user: {
+                            include: {
+                                businesses: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // If we found a quote that was converted to an invoice, use its invoice
+        if (quote?.convertedTo) {
+            // Type assertion to match the expected invoice structure
+            invoice = {
+                ...quote.convertedTo,
+                createdFrom: quote
+            };
+        }
+    }
+
     // Si la facture n'existe pas ou n'appartient pas à l'utilisateur
     if (!invoice) {
         return { invoice: null };
@@ -107,6 +152,14 @@ export async function GET(
             vatAmount: invoice.vatAmount,
             totalHT: invoice.totalHT,
             totalTTC: invoice.total,
+            // Add the source quote ID if this invoice was created from a quote
+            createdFromQuoteId: invoice.createdFromId || null,
+            // Include original quote data if available
+            originalQuote: invoice.createdFrom ? {
+                id: invoice.createdFrom.id,
+                status: invoice.createdFrom.status,
+                createdAt: invoice.createdFrom.createdAt
+            } : null
         }
     });
 
